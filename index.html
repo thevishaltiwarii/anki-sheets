@@ -407,6 +407,26 @@ tbody tr:last-child td { border-bottom: none; }
     #bottom-nav button.active { color: var(--accent); }
     .controls.rating-mode { grid-template-columns: repeat(2, 1fr); }
     .complete-stats { grid-template-columns: 1fr 1fr; }
+    
+    /* MOBILE FLOATING ACTION BUTTON */
+    #fab-add-subject {
+        position: fixed;
+        bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        padding: 0;
+        margin: 0 !important;
+        z-index: 40;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #fab-add-subject .btn-text { display: none; }
+    #fab-add-subject svg { width: 26px; height: 26px; margin: 0; stroke-width: 2.2; }
+    #view-decks { padding-bottom: 70px; }
 }
 @media (min-width: 861px) {
     .btn-mobile-only { display: none; }
@@ -436,7 +456,7 @@ tbody tr:last-child td { border-bottom: none; }
                 Stats
             </button>
             <button data-target="settings" onclick="app.ui.switchView('settings')">
-                <span class="icon"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+                <span class="icon"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
                 Settings
             </button>
         </nav>
@@ -464,9 +484,9 @@ tbody tr:last-child td { border-bottom: none; }
             <!-- Decks View -->
             <div id="view-decks" class="view active">
                 <div id="subjects-container"></div>
-                <button class="btn btn-primary btn-block" style="margin-top: 10px;" onclick="app.ui.openAddSubjectModal()">
+                <button id="fab-add-subject" class="btn btn-primary btn-block" style="margin-top: 10px;" onclick="app.ui.openAddSubjectModal()">
                     <svg class="i" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Add Google Sheet
+                    <span class="btn-text">Add Google Sheet</span>
                 </button>
             </div>
 
@@ -653,7 +673,7 @@ tbody tr:last-child td { border-bottom: none; }
         Stats
     </button>
     <button onclick="app.ui.switchView('settings')" data-target="settings">
-        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
     </button>
 </nav>
@@ -711,7 +731,6 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 </div>
 
-<!-- NEW: Study Options Modal -->
 <div class="modal-overlay" id="modal-study-options">
     <div class="modal-box">
         <h3>Select chapters</h3>
@@ -815,7 +834,7 @@ const app = {
     },
 
     // ----------------------------------------------------------------------
-    // FSRS v4 SCHEDULER (UPDATED for 1m/5m intervals)
+    // FSRS v4 SCHEDULER
     // ----------------------------------------------------------------------
     fsrs: {
         weights: [0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61],
@@ -848,8 +867,8 @@ const app = {
                 else if (rating === 4) { next.state = 2; intervalDays = this.nextInterval(next.stability); }
             }
             else if (card.state === 1 || card.state === 3) {
-                if (rating === 1) { intervalDays = 1 / 1440; }                       // Again = 1m
-                else if (rating === 2) { intervalDays = 5 / 1440; }                  // Hard = 5m
+                if (rating === 1) { intervalDays = 1 / 1440; }                       
+                else if (rating === 2) { intervalDays = 5 / 1440; }                  
                 else if (rating === 3) { next.state = 2; intervalDays = this.nextInterval(next.stability); }
                 else if (rating === 4) { next.state = 2; intervalDays = this.nextInterval(next.stability) + 1; }
             }
@@ -863,7 +882,7 @@ const app = {
                     next.lapses++;
                     next.state = 3;
                     next.stability = Math.max(0.1, this.weights[11] * Math.pow(card.difficulty, -this.weights[12]) * Math.pow(card.stability, this.weights[13]) * (1 - Math.pow(Math.E, -this.weights[14] * next.elapsed_days)));
-                    intervalDays = 1 / 1440; // Lapsed Again = 1m
+                    intervalDays = 1 / 1440; 
                 } else {
                     let s_inc;
                     if (rating === 2) s_inc = this.weights[15] * Math.pow(card.difficulty, -this.weights[16]) * (Math.pow(Math.E, this.weights[17] || 0) - 1);
@@ -1048,7 +1067,6 @@ const app = {
         history: [], 
         chapNameCache: {},
 
-        // Updated start signature to handle custom chapter selections
         async start(type, id, name, chapterIds = null) {
             this.activeContext = { type, id, name, chapterIds };
             this.sessionStats = { studied: 0, good: 0 };
@@ -1078,10 +1096,8 @@ const app = {
         async buildQueue() {
             let allCards = [];
             
-            // Handle fetching logic based on mode
             if (this.activeContext.type === 'subject' || this.activeContext.type === 'custom') {
                 allCards = await app.db.getAll('cards', 'subjectId', this.activeContext.id);
-                // Filter by specific chapters if we are in 'custom' study mode
                 if (this.activeContext.type === 'custom') {
                     allCards = allCards.filter(c => this.activeContext.chapterIds.includes(c.chapterId));
                 }
@@ -1093,7 +1109,6 @@ const app = {
             let limitNew = await this.getNewLimit();
             let newCards = [], learnCards = [], reviewCards = [];
             
-            // Cram Mode: If they clicked a Chapter directly, ignore due dates and show all cards
             let isCramMode = (this.activeContext.type === 'chapter');
 
             for (let c of allCards) {
@@ -1452,6 +1467,7 @@ const app = {
     // ----------------------------------------------------------------------
     ui: {
         openMenuId: null,
+        currentView: null,
 
         init() {
             document.getElementById('header-sync-btn').onclick = () => app.sync.runAll();
@@ -1489,11 +1505,45 @@ const app = {
                 m.addEventListener('click', (e) => { if (e.target === m) this.closeModal(m.id); });
             });
 
+            // Swipe Gestures for Mobile
+            let touchStartX = 0;
+            let touchStartY = 0;
+            const swipeViews = ['decks', 'browse', 'stats', 'settings'];
+
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, {passive: true});
+
+            document.addEventListener('touchend', e => {
+                if (!swipeViews.includes(app.ui.currentView)) return;
+                
+                // Ignore horizontal scroll areas to prevent accidental swiping
+                if (e.target.closest('.table-scroll, input, textarea, .heatmap')) return;
+
+                let touchEndX = e.changedTouches[0].screenX;
+                let touchEndY = e.changedTouches[0].screenY;
+                
+                let diffX = touchEndX - touchStartX;
+                let diffY = touchEndY - touchStartY;
+                
+                // Trigger swipe if horizontal movement is > 60px and mostly horizontal
+                if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+                    let currentIndex = swipeViews.indexOf(app.ui.currentView);
+                    if (diffX < 0 && currentIndex < swipeViews.length - 1) {
+                        app.ui.switchView(swipeViews[currentIndex + 1]); // Swipe left -> Next View
+                    } else if (diffX > 0 && currentIndex > 0) {
+                        app.ui.switchView(swipeViews[currentIndex - 1]); // Swipe right -> Prev View
+                    }
+                }
+            }, {passive: true});
+
             this.switchView('decks');
             this.refreshSidebarSummary();
         },
 
         switchView(id) {
+            this.currentView = id;
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.side-nav button, #bottom-nav button').forEach(b => b.classList.remove('active'));
 
@@ -1695,7 +1745,6 @@ const app = {
             if (this._editCardCallback) this._editCardCallback();
         },
         
-        // NEW: Study Chapter Selection Flow
         openStudyOptionsModal(subjectId, subjectName) {
             this.closeAllMenus();
             app.db.getAll('chapters', 'subjectId', subjectId).then(chapters => {
@@ -1941,6 +1990,12 @@ app.sync.syncSubjectById = async function(subjectId) {
 // BOOTSTRAP
 // ----------------------------------------------------------------------
 window.onload = async () => {
+    // 1. Cleanly Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+    }
+    
+    // 2. Initialize Application Data
     try {
         await app.db.init();
         await app.settings.load();
@@ -1949,15 +2004,7 @@ window.onload = async () => {
         document.body.innerHTML = `<div style="padding: 20px; color: #d64545; font-family: sans-serif;">Failed to initialize database. Ensure you are not running in Private Browsing / Incognito mode with strict local storage blocking.<br><br>Error: ${e.message}</div>`;
     }
 };
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker registered'))
-        .catch(err => console.log('Service Worker registration failed:', err));
-    });
-  }
-</script>
+
 </script>
 </body>
 </html>
