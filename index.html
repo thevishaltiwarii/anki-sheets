@@ -68,7 +68,7 @@
         .btn-primary { background: var(--primary); color: #fff; border: none; }
         .btn:active { opacity: 0.8; }
         .card-panel { background: var(--surface-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: var(--card-shadow); border: 1px solid var(--border); }
-        input[type="text"], input[type="url"], select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-color); color: var(--text-main); font-size: 1rem; }
+        input[type="text"], input[type="url"], input[type="password"], select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-color); color: var(--text-main); font-size: 1rem; }
 
         /* Decks View */
         .subject-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -109,7 +109,7 @@
 
     <header>
         <h1 id="app-title">Decks</h1>
-        <button id="header-sync-btn" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Sync</button>
+        <button id="header-sync-btn" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Sync Data</button>
     </header>
 
     <main>
@@ -197,6 +197,14 @@
 
         <!-- Settings View -->
         <div id="view-settings" class="view">
+            
+            <div class="card-panel">
+                <h3>Google API Key</h3>
+                <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 10px;">Required to sync securely with Google Sheets. This is saved locally in your browser.</p>
+                <input type="password" id="setting-api-key" placeholder="AIzaSy...">
+                <button class="btn btn-primary" onclick="app.settings.saveApiKey()" style="width: 100%;">Save Key</button>
+            </div>
+
             <div class="card-panel">
                 <h3>Appearance</h3>
                 <select id="theme-select" onchange="app.settings.setTheme(this.value)">
@@ -216,8 +224,8 @@
 
             <div class="card-panel">
                 <h3>Connection Diagnostics</h3>
-                <p class="text-muted" style="font-size: 0.8rem; margin-bottom:10px;">Monitor the automatic Google Sheets synchronization.</p>
-                <div id="diag-log" class="diag-log">Logs will appear during sync...</div>
+                <p class="text-muted" style="font-size: 0.8rem; margin-bottom:10px;">Monitor the API synchronization.</p>
+                <div id="diag-log" class="diag-log">Logs will appear here during sync...</div>
             </div>
         </div>
     </main>
@@ -232,7 +240,7 @@
 <script>
 /**
  * CORE APPLICATION LOGIC
- * Phase 1: Single file, no PWA, local-first IndexedDB, FSRS scheduler, Google Sheets Proxy Sync
+ * Phase 1: Single file, no PWA, local-first IndexedDB, FSRS scheduler, Google Sheets API v4 Sync
  */
 
 const app = {
@@ -249,22 +257,7 @@ const app = {
             return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
         },
         escapeHTML: (str) => str.replace(/[&<>'"]/g, tag => ({'&': '&amp;','<': '&lt;','>': '&gt;',"'": '&#39;','"': '&quot;'}[tag])),
-        formatText: (str) => app.utils.escapeHTML(str).replace(/\n/g, '<br>'),
-        parseCSV: (str) => {
-            let arr = [], quote = false, row = 0, col = 0;
-            for (let c = 0; c < str.length; c++) {
-                let cc = str[c], nc = str[c+1];
-                arr[row] = arr[row] || []; arr[row][col] = arr[row][col] || '';
-                if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
-                if (cc == '"') { quote = !quote; continue; }
-                if (cc == ',' && !quote) { ++col; continue; }
-                if (cc == '\r' && nc == '\n' && !quote) { ++row; col = 0; ++c; continue; }
-                if (cc == '\n' && !quote) { ++row; col = 0; continue; }
-                if (cc == '\r' && !quote) { ++row; col = 0; continue; }
-                arr[row][col] += cc;
-            }
-            return arr;
-        }
+        formatText: (str) => app.utils.escapeHTML(str).replace(/\n/g, '<br>')
     },
 
     // ----------------------------------------------------------------------
@@ -324,15 +317,13 @@ const app = {
     },
 
     // ----------------------------------------------------------------------
-    // 3. FSRS v4 SCHEDULER (Lightweight JS implementation)
+    // 3. FSRS v4 SCHEDULER
     // ----------------------------------------------------------------------
     fsrs: {
-        // States: 0 = New, 1 = Learning, 2 = Review, 3 = Relearning
-        // Ratings: 1 = Again, 2 = Hard, 3 = Good, 4 = Easy
         weights: [0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61],
         retention: 0.9,
-        learningSteps: [1, 10], // minutes
-        relearningSteps: [10],  // minutes
+        learningSteps: [1, 10], 
+        relearningSteps: [10],
 
         createEmptyCard() {
             return {
@@ -373,18 +364,18 @@ const app = {
                 
                 next.difficulty = Math.max(1, Math.min(10, card.difficulty - this.weights[6] * (rating - 3)));
                 
-                if (rating === 1) { // Lapsed
+                if (rating === 1) { 
                     next.lapses++;
                     next.state = 3;
                     next.stability = Math.max(0.1, this.weights[11] * Math.pow(card.difficulty, -this.weights[12]) * Math.pow(card.stability, this.weights[13]) * (1 - Math.pow(Math.E, -this.weights[14] * next.elapsed_days)));
                     intervalDays = this.relearningSteps[0] / 1440;
                 } else {
                     let s_inc;
-                    if (rating === 2) s_inc = this.weights[15] * Math.pow(card.difficulty, -this.weights[16]) * (Math.pow(Math.E, this.weights[17] || 0) - 1); // Simplified
+                    if (rating === 2) s_inc = this.weights[15] * Math.pow(card.difficulty, -this.weights[16]) * (Math.pow(Math.E, this.weights[17] || 0) - 1); 
                     else if (rating === 3) s_inc = Math.pow(Math.E, this.weights[8]) * (11 - card.difficulty) * Math.pow(card.stability, -this.weights[9]) * (Math.pow(Math.E, this.weights[10] * (1 - retrievability)) - 1);
-                    else s_inc = Math.pow(Math.E, this.weights[8]) * (11 - card.difficulty) * Math.pow(card.stability, -this.weights[9]) * (Math.pow(Math.E, this.weights[10] * (1 - retrievability)) - 1) * this.weights[15]; // Simplified Easy bonus
+                    else s_inc = Math.pow(Math.E, this.weights[8]) * (11 - card.difficulty) * Math.pow(card.stability, -this.weights[9]) * (Math.pow(Math.E, this.weights[10] * (1 - retrievability)) - 1) * this.weights[15]; 
 
-                    next.stability = card.stability + (s_inc || card.stability * 0.1); // Fallback safeguard
+                    next.stability = card.stability + (s_inc || card.stability * 0.1); 
                     intervalDays = this.nextInterval(next.stability);
                 }
             }
@@ -416,7 +407,7 @@ const app = {
     },
 
     // ----------------------------------------------------------------------
-    // 4. GOOGLE SHEETS SYNC ENGINE
+    // 4. GOOGLE SHEETS API V4 ENGINE
     // ----------------------------------------------------------------------
     sync: {
         log(msg) {
@@ -424,60 +415,59 @@ const app = {
             if(el) { el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
             console.log("[Sync]", msg);
         },
-        async proxyFetch(url) {
-            // Using allorigins as a public CORS proxy for static/file:// environments
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-            const res = await fetch(proxyUrl);
-            if (!res.ok) throw new Error(`Proxy Fetch Failed: ${res.status}`);
-            return await res.text();
+        extractSheetId(url) {
+            // Extracts standard ID from https://docs.google.com/spreadsheets/d/ID_HERE/edit
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : null;
         },
         async runAll() {
+            const apiKeySettings = await app.db.get('settings', 'api_key');
+            if (!apiKeySettings || !apiKeySettings.value) {
+                alert("Please add your Google API Key in Settings first.");
+                app.ui.switchView('settings');
+                return;
+            }
             this.log("Starting sync for all subjects...");
             const subjects = await app.db.getAll('subjects');
-            for (let sub of subjects) await this.syncSubject(sub);
+            for (let sub of subjects) await this.syncSubject(sub, apiKeySettings.value);
             app.ui.renderDecks();
         },
-        async syncSubject(subject) {
+        async syncSubject(subject, apiKey) {
             try {
                 this.log(`Syncing Subject: ${subject.name}`);
                 
-                // 1. Discover Chapters (Tabs) via pubhtml
-                this.log(`Fetching pubhtml to discover tabs...`);
-                let html = await this.proxyFetch(subject.url);
-                
-                // Parse HTML for GIDs (Google usually puts them in li#sheet-button-xxx or JS var)
-                const regex = /<li[^>]*id="sheet-button-(\d+)"[^>]*>.*?<a[^>]*>(.*?)<\/a>/g;
-                let match;
-                const detectedTabs = [];
-                while ((match = regex.exec(html)) !== null) {
-                    detectedTabs.push({ gid: match[1], name: match[2] });
-                }
+                const sheetId = this.extractSheetId(subject.url);
+                if (!sheetId) throw new Error("Could not extract Spreadsheet ID from URL. Ensure it's a standard Google Sheets URL.");
 
-                if (detectedTabs.length === 0) {
-                    this.log(`Warning: No tabs detected automatically. Attempting single-sheet fallback.`);
-                    detectedTabs.push({ gid: "0", name: "Default Sheet" });
-                }
-
-                // Base CSV export URL
-                const baseUrl = subject.url.replace(/\/pubhtml.*/, '/pub');
+                // 1. Fetch spreadsheet metadata to discover chapters (tabs)
+                this.log(`Fetching spreadsheet metadata...`);
+                const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`;
+                const metaRes = await fetch(metaUrl);
+                if (!metaRes.ok) throw new Error(`Metadata Fetch Failed: ${metaRes.statusText}. Check API key and sheet permissions.`);
+                const metaData = await metaRes.json();
 
                 // Process each tab
-                for (let tab of detectedTabs) {
-                    this.log(`Syncing chapter: ${tab.name} (GID: ${tab.gid})`);
+                for (let sheet of metaData.sheets) {
+                    const tabName = sheet.properties.title;
+                    const gid = sheet.properties.sheetId.toString();
+                    
+                    this.log(`Syncing chapter: ${tabName}`);
                     
                     // Upsert Chapter
-                    let chapterId = `${subject.id}_${tab.gid}`;
+                    let chapterId = `${subject.id}_${gid}`;
                     let chapter = await app.db.get('chapters', chapterId);
                     if (!chapter) {
-                        chapter = { id: chapterId, subjectId: subject.id, gid: tab.gid, name: tab.name };
+                        chapter = { id: chapterId, subjectId: subject.id, gid: gid, name: tabName };
                         await app.db.put('chapters', chapter);
                     }
 
-                    // Fetch CSV data
-                    const csvUrl = `${baseUrl}?output=csv&gid=${tab.gid}&single=true`;
-                    const csvData = await this.proxyFetch(csvUrl);
-                    const rows = app.utils.parseCSV(csvData);
+                    // 2. Fetch row data for this specific tab
+                    const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(tabName)}?key=${apiKey}`;
+                    const dataRes = await fetch(dataUrl);
+                    if (!dataRes.ok) throw new Error(`Data Fetch Failed for ${tabName}: ${dataRes.statusText}`);
+                    const sheetData = await dataRes.json();
 
+                    const rows = sheetData.values || [];
                     await this.reconcileCards(subject.id, chapterId, rows);
                 }
 
@@ -490,23 +480,19 @@ const app = {
             }
         },
         async reconcileCards(subjectId, chapterId, rows) {
-            // Reconciles CSV rows with local database to preserve learning history
             let existingCards = await app.db.getAll('cards', 'chapterId', chapterId);
             let unmatchedCards = new Set(existingCards.map(c => c.id));
-            
             let added = 0, updated = 0, unchanged = 0;
 
-            // Skip header row
+            // Skip header row (start at i = 1)
             for (let i = 1; i < rows.length; i++) {
                 if (!rows[i] || rows[i].length < 2) continue;
-                let front = rows[i][0].trim();
-                let back = rows[i][1].trim();
+                let front = rows[i][0] ? rows[i][0].trim() : "";
+                let back = rows[i][1] ? rows[i][1].trim() : "";
                 if (!front || !back) continue;
 
                 let qHash = await app.utils.hash(front);
                 let aHash = await app.utils.hash(back);
-
-                // Strategy: Find exact match -> row match -> new
                 let matchId = null;
                 
                 // 1. Exact Match
@@ -515,7 +501,7 @@ const app = {
                     matchId = exactCard.id;
                     unchanged++;
                 } 
-                // 2. Row Match (Row index didn't change, but text slightly edited)
+                // 2. Row Match (Text was edited)
                 else {
                     let rowCard = existingCards.find(c => c.row_index === i);
                     if (rowCard && unmatchedCards.has(rowCard.id)) {
@@ -532,10 +518,9 @@ const app = {
                     card.qHash = qHash;
                     card.aHash = aHash;
                     card.row_index = i;
-                    card.suspended = false; // Unsuspend if it was orphaned
+                    card.suspended = false; // Restores card if it was previously orphaned
                     await app.db.put('cards', card);
                 } else {
-                    // 3. Create New Card
                     let fsrsState = app.fsrs.createEmptyCard();
                     let newCard = {
                         id: app.utils.uuid(), subjectId, chapterId,
@@ -546,7 +531,7 @@ const app = {
                 }
             }
 
-            // Orphan remaining unmatched cards (rows deleted from sheet)
+            // Orphan remaining unmatched cards (if rows were deleted from sheet)
             for (let id of unmatchedCards) {
                 let c = await app.db.get('cards', id);
                 c.suspended = true;
@@ -586,7 +571,7 @@ const app = {
             }
 
             let now = Date.now();
-            let limitNew = 20; // Configurable later
+            let limitNew = 20; 
             let newCards = [], learnCards = [], reviewCards = [];
 
             for (let c of allCards) {
@@ -600,13 +585,10 @@ const app = {
                 }
             }
 
-            // Shuffle queue
-            newCards.sort(() => Math.random() - 0.5);
+            newCards.sort(() => Math.random() - 0.5); // Shuffle new cards
             
-            // Priority: Learn/Relearn -> Review -> New
             this.queue = [...learnCards, ...reviewCards, ...newCards];
             
-            // Update counts UI
             document.getElementById('study-count-new').innerText = newCards.length;
             document.getElementById('study-count-learn').innerText = learnCards.length;
             document.getElementById('study-count-due').innerText = reviewCards.length;
@@ -650,10 +632,8 @@ const app = {
             let card = this.currentCard;
             let updatedCard = app.fsrs.calculate(card, rating);
             
-            // Save card
             await app.db.put('cards', updatedCard);
 
-            // Save review history
             let review = {
                 id: app.utils.uuid(), cardId: card.id, ts: Date.now(),
                 rating: rating, state: card.state, nextState: updatedCard.state
@@ -663,17 +643,13 @@ const app = {
             this.sessionStats.studied++;
             if (rating >= 3) this.sessionStats.good++;
 
-            // Handle Queue
-            this.queue.shift(); // Remove current
+            this.queue.shift(); 
             if (updatedCard.state === 1 || updatedCard.state === 3) {
-                // If it's still learning, re-insert into queue if due soon
-                if (updatedCard.due <= Date.now() + 15*60000) { // Due within 15 mins
-                     // Insert semi-randomly near the front
+                if (updatedCard.due <= Date.now() + 15*60000) { 
                     this.queue.splice(Math.min(this.queue.length, 3), 0, updatedCard);
                 }
             }
 
-            // Adjust counts slightly dynamically
             this.nextCard();
         }
     },
@@ -686,7 +662,6 @@ const app = {
             document.getElementById('header-sync-btn').onclick = () => app.sync.runAll();
             document.getElementById('btn-show-answer').onclick = () => app.study.showAnswer();
             
-            // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
                 if (document.getElementById('view-study').classList.contains('active')) {
                     if (e.code === 'Space') {
@@ -735,7 +710,7 @@ const app = {
                 container.innerHTML = `
                     <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
                         <p>No decks found.</p>
-                        <p style="font-size: 0.9rem; margin-top:10px;">To begin, publish a Google Sheet to the web (File > Share > Publish to web) and add the link below.</p>
+                        <p style="font-size: 0.9rem; margin-top:10px;">To begin, add your Google API key in Settings, then click the button below.</p>
                         <p style="font-size: 0.8rem; margin-top:10px;">Format: Col A = Question, Col B = Answer. Tabs = Chapters.</p>
                     </div>`;
                 return;
@@ -792,13 +767,16 @@ const app = {
         },
 
         async promptAddSubject() {
-            let url = prompt("Enter published Google Sheet URL:\n(e.g., https://docs.google.com/spreadsheets/d/e/.../pubhtml)");
-            if (!url) return;
-            if (!url.includes("pubhtml")) {
-                alert("URL must be the 'pubhtml' link generated from 'Publish to the web'.");
+            const apiKeySettings = await app.db.get('settings', 'api_key');
+            if (!apiKeySettings || !apiKeySettings.value) {
+                alert("Please add your Google API Key in Settings first.");
+                app.ui.switchView('settings');
                 return;
             }
-            let name = prompt("Enter Subject Name:", "CA Inter - Audit"); // Smart default context
+
+            let url = prompt("Enter standard Google Sheet URL:\n(e.g., https://docs.google.com/spreadsheets/d/ID_HERE/edit)");
+            if (!url) return;
+            let name = prompt("Enter Subject Name:", "CA Inter - Subject"); 
             if (!name) return;
 
             let subject = { id: app.utils.uuid(), name, url, lastSync: null };
@@ -806,7 +784,7 @@ const app = {
             
             app.ui.switchView('settings');
             app.sync.log(`Added Subject: ${name}`);
-            await app.sync.syncSubject(subject);
+            await app.sync.syncSubject(subject, apiKeySettings.value);
             app.ui.switchView('decks');
         }
     },
@@ -826,7 +804,6 @@ const app = {
 
             let states = ['New', 'Learn', 'Review', 'Relearn'];
 
-            // Limit to 100 for performance in Phase 1
             cards.slice(0, 100).forEach(c => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -839,7 +816,6 @@ const app = {
             });
         },
         search() {
-            // Simple visual filter
             let q = document.getElementById('browse-search').value.toLowerCase();
             let rows = document.getElementById('browse-tbody').getElementsByTagName('tr');
             for(let r of rows) {
@@ -868,11 +844,25 @@ const app = {
         async load() {
             let theme = await app.db.get('settings', 'theme');
             if(theme) this.setTheme(theme.value, false);
+
+            let apiKey = await app.db.get('settings', 'api_key');
+            if(apiKey && document.getElementById('setting-api-key')) {
+                document.getElementById('setting-api-key').value = apiKey.value;
+            }
         },
         async setTheme(val, save = true) {
             document.documentElement.setAttribute('data-theme', val);
             document.getElementById('theme-select').value = val;
             if(save) await app.db.put('settings', {key: 'theme', value: val});
+        },
+        async saveApiKey() {
+            let key = document.getElementById('setting-api-key').value.trim();
+            if (!key) {
+                alert("Please enter a valid API key.");
+                return;
+            }
+            await app.db.put('settings', { key: 'api_key', value: key });
+            alert("API Key saved securely to your local database.");
         },
         async clearAllData() {
             if(confirm("DANGER: This will delete all your learning history and cards locally. Are you sure?")) {
