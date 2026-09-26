@@ -1,251 +1,723 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Spaced Repetition Study</title>
-    <style>
-        :root {
-            /* Light Theme Defaults */
-            --bg-color: #f5f5f5;
-            --surface-color: #ffffff;
-            --text-main: #222222;
-            --text-muted: #666666;
-            --primary: #2196F3;
-            --border: #e0e0e0;
-            --success: #4CAF50;
-            --warning: #FF9800;
-            --danger: #F44336;
-            --card-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            --header-bg: #ffffff;
-            --nav-bg: #ffffff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Recall — Spaced Repetition Study</title>
+<style>
+:root {
+    --bg: #eef0f4;
+    --bg-elevated: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f6f7f9;
+    --text: #1b1e27;
+    --text-muted: #6b7080;
+    --text-faint: #9a9fae;
+    --border: #dfe2e9;
+    --accent: #3457d5;
+    --accent-soft: #e7ebfc;
+    --accent-ink: #ffffff;
+    --again: #d64545;
+    --hard: #d98829;
+    --good: #2f9e5b;
+    --easy: #3457d5;
+    --again-soft: #fbe9e9;
+    --hard-soft: #fbf1e2;
+    --good-soft: #e6f5ec;
+    --easy-soft: #e7ebfc;
+    --danger: #d64545;
+    --danger-soft: #fbe9e9;
+    --shadow-sm: 0 1px 2px rgba(20,22,30,0.06);
+    --shadow-md: 0 6px 20px rgba(20,22,30,0.08);
+    --shadow-lg: 0 20px 48px rgba(20,22,30,0.16);
+    --radius: 10px;
+    --sidebar-w: 248px;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
 
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --primary: #bb86fc;
-            --border: #333333;
-            --card-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            --header-bg: #1f1f1f;
-            --nav-bg: #1f1f1f;
-        }
+[data-theme="dark"] {
+    --bg: #14161c;
+    --bg-elevated: #1a1d24;
+    --surface: #1c1f27;
+    --surface-2: #23262f;
+    --text: #eceef3;
+    --text-muted: #9498a6;
+    --text-faint: #666b7a;
+    --border: #2c3039;
+    --accent: #7c93ff;
+    --accent-soft: #262c47;
+    --accent-ink: #10131c;
+    --again: #ef6a6a;
+    --hard: #e5a552;
+    --good: #52c483;
+    --easy: #7c93ff;
+    --again-soft: #341f22;
+    --hard-soft: #362a1c;
+    --good-soft: #1c3327;
+    --easy-soft: #262c47;
+    --danger: #ef6a6a;
+    --danger-soft: #341f22;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 6px 20px rgba(0,0,0,0.35);
+    --shadow-lg: 0 20px 48px rgba(0,0,0,0.5);
+}
 
-        [data-theme="amoled"] {
-            --bg-color: #000000;
-            --surface-color: #000000;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --primary: #bb86fc;
-            --border: #222222;
-            --card-shadow: none;
-            --header-bg: #000000;
-            --nav-bg: #000000;
-        }
+[data-theme="amoled"] {
+    --bg: #000000;
+    --bg-elevated: #000000;
+    --surface: #0a0a0a;
+    --surface-2: #121212;
+    --text: #f0f0f0;
+    --text-muted: #8b8f9c;
+    --text-faint: #5c6070;
+    --border: #1e1e1e;
+    --accent: #7c93ff;
+    --accent-soft: #1a1f33;
+    --accent-ink: #0a0a0a;
+    --again: #ef6a6a;
+    --hard: #e5a552;
+    --good: #52c483;
+    --easy: #7c93ff;
+    --again-soft: #200f11;
+    --hard-soft: #201a10;
+    --good-soft: #0f1e17;
+    --easy-soft: #1a1f33;
+    --danger: #ef6a6a;
+    --danger-soft: #200f11;
+    --shadow-sm: none;
+    --shadow-md: 0 6px 20px rgba(0,0,0,0.6);
+    --shadow-lg: 0 20px 48px rgba(0,0,0,0.8);
+}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); font-size: 16px; line-height: 1.5; padding-bottom: 70px; }
-        
-        /* Layout */
-        header { background: var(--header-bg); padding: 15px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
-        header h1 { font-size: 1.2rem; font-weight: 600; }
-        
-        nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 10; padding-bottom: env(safe-area-inset-bottom, 10px); }
-        nav button { background: none; border: none; color: var(--text-muted); font-size: 0.9rem; padding: 10px; flex: 1; cursor: pointer; transition: color 0.2s; }
-        nav button.active { color: var(--primary); font-weight: bold; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+::selection { background: var(--accent); color: var(--accent-ink); }
+button { font-family: inherit; }
+a { color: var(--accent); }
 
-        main { padding: 20px; max-width: 800px; margin: 0 auto; }
-        .view { display: none; }
-        .view.active { display: block; }
+/* ---------- App shell ---------- */
+#shell { display: flex; min-height: 100vh; }
 
-        /* Typography & Utilities */
-        h2 { font-size: 1.4rem; margin-bottom: 15px; }
-        h3 { font-size: 1.1rem; margin-bottom: 10px; }
-        .text-muted { color: var(--text-muted); font-size: 0.9rem; }
-        .btn { background: var(--surface-color); border: 1px solid var(--border); color: var(--text-main); padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
-        .btn-primary { background: var(--primary); color: #fff; border: none; }
-        .btn:active { opacity: 0.8; }
-        .card-panel { background: var(--surface-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: var(--card-shadow); border: 1px solid var(--border); }
-        input[type="text"], input[type="url"], input[type="password"], select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-color); color: var(--text-main); font-size: 1rem; }
+/* Sidebar (desktop) */
+#sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: var(--bg-elevated);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 20px 14px;
+}
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 22px 10px;
+}
+.brand-mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #6c4de0);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-serif); font-weight: 600; color: #fff; font-size: 15px;
+    flex-shrink: 0;
+}
+.brand-name { font-weight: 650; font-size: 1.02rem; letter-spacing: -0.01em; }
 
-        /* Decks View */
-        .subject-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .chapter-list { margin-top: 10px; display: none; border-top: 1px solid var(--border); padding-top: 10px; }
-        .chapter-list.open { display: block; }
-        .chapter-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); align-items: center;}
-        .chapter-item:last-child { border-bottom: none; }
-        .pill-container { display: flex; gap: 8px; }
-        .pill { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-        .pill.new { background: rgba(33, 150, 243, 0.1); color: #2196F3; }
-        .pill.learn { background: rgba(255, 152, 0, 0.1); color: #FF9800; }
-        .pill.due { background: rgba(76, 175, 80, 0.1); color: #4CAF50; }
+.side-nav { display: flex; flex-direction: column; gap: 2px; }
+.side-nav button {
+    display: flex; align-items: center; gap: 11px;
+    background: none; border: none; color: var(--text-muted);
+    padding: 9px 10px; border-radius: 8px; font-size: 0.92rem; font-weight: 500;
+    cursor: pointer; text-align: left; transition: background .15s, color .15s;
+}
+.side-nav button:hover { background: var(--surface-2); color: var(--text); }
+.side-nav button.active { background: var(--accent-soft); color: var(--accent); }
+.side-nav .icon { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.side-nav .icon svg { width: 18px; height: 18px; }
 
-        /* Study View */
-        #study-container { display: flex; flex-direction: column; min-height: 70vh; }
-        .flashcard { background: var(--surface-color); border-radius: 12px; padding: 30px 20px; box-shadow: var(--card-shadow); border: 1px solid var(--border); flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 20px; font-size: 1.2rem; min-height: 300px;}
-        .card-divider { width: 100%; height: 1px; background: var(--border); margin: 20px 0; display: none; }
-        #card-answer { display: none; width: 100%; }
-        .flashcard.show-answer #card-answer, .flashcard.show-answer .card-divider { display: block; }
-        .controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
-        .controls.rating-mode { grid-template-columns: repeat(4, 1fr); }
-        .btn-rating { display: flex; flex-direction: column; align-items: center; padding: 15px 5px; }
-        .btn-rating span.time { font-size: 0.8rem; opacity: 0.7; margin-top: 5px; }
-        
-        .btn-again { border-bottom: 3px solid var(--danger); }
-        .btn-hard { border-bottom: 3px solid var(--warning); }
-        .btn-good { border-bottom: 3px solid var(--success); }
-        .btn-easy { border-bottom: 3px solid var(--primary); }
+.sidebar-spacer { flex: 1; }
+.sidebar-footer { display: flex; flex-direction: column; gap: 8px; padding: 0 4px; }
+.due-summary {
+    display: flex; gap: 10px; padding: 10px 10px; border-radius: 8px; background: var(--surface-2);
+    font-size: 0.78rem; color: var(--text-muted);
+}
+.due-summary b { color: var(--text); font-weight: 650; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 4px; }
 
-        /* Diagnostics / Table */
-        .diag-log { background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; border-radius: 6px; font-size: 0.85rem; max-height: 200px; overflow-y: auto; margin-top: 10px;}
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem;}
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
-        th { background: var(--surface-color); }
-    </style>
+/* Main column */
+#main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+header#topbar {
+    background: var(--bg-elevated);
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+}
+#app-title { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+main { padding: 24px; max-width: 920px; margin: 0 auto; width: 100%; flex: 1; }
+.view { display: none; }
+.view.active { display: block; animation: fadein .18s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+h2 { font-size: 1.3rem; font-weight: 650; margin-bottom: 4px; letter-spacing: -0.01em; }
+h3 { font-size: 1.02rem; font-weight: 650; margin-bottom: 12px; }
+.section-sub { color: var(--text-muted); font-size: 0.86rem; margin-bottom: 18px; }
+.text-muted { color: var(--text-muted); font-size: 0.88rem; }
+.text-faint { color: var(--text-faint); font-size: 0.8rem; }
+
+/* Buttons */
+.btn {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 15px; border-radius: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 550;
+    transition: background .15s, border-color .15s, transform .05s;
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.btn:hover { background: var(--surface-2); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn-danger:hover { background: var(--danger-soft); }
+.btn-ghost { background: none; border-color: transparent; }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn-sm { padding: 6px 11px; font-size: 0.8rem; }
+.btn-icon { padding: 7px; width: 32px; height: 32px; justify-content: center; }
+.btn-block { width: 100%; justify-content: center; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.icon { display: inline-flex; }
+svg.i { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Cards / panels */
+.card-panel { background: var(--surface); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-state .icon-lg { width: 44px; height: 44px; margin: 0 auto 16px; color: var(--text-faint); }
+.empty-state h3 { color: var(--text); }
+
+/* Inputs */
+input[type="text"], input[type="url"], input[type="password"], input[type="number"], select, textarea {
+    width: 100%; padding: 10px 12px; margin: 6px 0; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-2); color: var(--text); font-size: 0.9rem; font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+textarea { resize: vertical; min-height: 70px; }
+label.field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 12px; margin-bottom: 2px; }
+
+/* ---------- Decks / Subjects ---------- */
+.subject-card { margin-bottom: 12px; }
+.subject-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 10px; }
+.subject-header-main { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.chevron { transition: transform .15s; color: var(--text-faint); flex-shrink: 0; }
+.chevron.open { transform: rotate(90deg); }
+.subject-title-block { min-width: 0; }
+.subject-title-block h3 { margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.subject-actions { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+
+.chapter-list { margin-top: 4px; display: none; border-top: 1px solid var(--border); padding-top: 6px; }
+.chapter-list.open { display: block; }
+.chapter-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 8px; border-radius: 8px; cursor: pointer; gap: 10px;
+    transition: background .12s;
+}
+.chapter-item:hover { background: var(--surface-2); }
+.chapter-item .chap-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chapter-item-row { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.pill-container { display: flex; gap: 6px; }
+.pill { padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 650; min-width: 22px; text-align: center; }
+.pill.new { background: var(--easy-soft); color: var(--easy); }
+.pill.learn { background: var(--hard-soft); color: var(--hard); }
+.pill.due { background: var(--good-soft); color: var(--good); }
+.pill.zero { opacity: 0.35; }
+
+.icon-btn { background: none; border: none; color: var(--text-faint); padding: 6px; border-radius: 6px; cursor: pointer; display: flex; }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.icon-btn.danger:hover { color: var(--danger); background: var(--danger-soft); }
+
+.menu-wrap { position: relative; }
+.dropdown-menu {
+    position: absolute; right: 0; top: calc(100% + 4px); background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: var(--shadow-lg); min-width: 172px; z-index: 100; overflow: hidden; padding: 5px;
+}
+.dropdown-menu button {
+    width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; font-size: 0.86rem;
+    color: var(--text); cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 9px;
+}
+.dropdown-menu button:hover { background: var(--surface-2); }
+.dropdown-menu button.danger { color: var(--danger); }
+.dropdown-menu button.danger:hover { background: var(--danger-soft); }
+.dropdown-menu hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* ---------- Study View ---------- */
+.study-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.study-progress-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; margin: 0 16px; overflow: hidden; }
+.study-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .25s ease; }
+.study-counts { display: flex; gap: 10px; font-size: 0.82rem; font-weight: 600; }
+.study-counts span { display: flex; align-items: center; gap: 5px; }
+
+#study-container { display: flex; flex-direction: column; min-height: 62vh; }
+.flashcard {
+    background: var(--surface); border-radius: 16px; padding: 44px 32px; box-shadow: var(--shadow-md);
+    border: 1px solid var(--border); flex-grow: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; margin-bottom: 18px;
+    font-size: 1.28rem; min-height: 280px; position: relative; word-break: break-word;
+}
+.flashcard .chap-tag {
+    position: absolute; top: 16px; left: 20px; font-size: 0.72rem; font-weight: 650; color: var(--text-faint);
+    text-transform: none;
+}
+.card-divider { width: 60%; height: 1px; background: var(--border); margin: 26px 0; display: none; }
+#card-answer { display: none; width: 100%; color: var(--text-muted); font-size: 1.08rem; }
+.flashcard.show-answer #card-answer, .flashcard.show-answer .card-divider { display: block; }
+#card-answer { color: var(--text); }
+
+.controls { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.controls.rating-mode { grid-template-columns: repeat(4, 1fr); }
+.btn-rating {
+    display: flex; flex-direction: column; align-items: center; padding: 13px 5px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 0.9rem; font-weight: 600;
+    transition: transform .05s, background .15s;
+}
+.btn-rating:active { transform: scale(0.96); }
+.btn-rating span.time { font-size: 0.74rem; opacity: 0.65; margin-top: 4px; font-weight: 500; }
+.btn-again { color: var(--again); background: var(--again-soft); }
+.btn-hard { color: var(--hard); background: var(--hard-soft); }
+.btn-good { color: var(--good); background: var(--good-soft); }
+.btn-easy { color: var(--easy); background: var(--easy-soft); }
+.btn-show-answer-main { padding: 18px; font-size: 1.02rem; border-radius: 10px; }
+
+.study-toolbar { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
+
+/* Session complete */
+.complete-panel { text-align: center; padding: 48px 24px; }
+.complete-icon { width: 52px; height: 52px; margin: 0 auto 18px; color: var(--good); }
+.complete-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; max-width: 320px; margin: 22px auto; }
+.complete-stats .stat-box { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
+.complete-stats .stat-box b { display: block; font-size: 1.2rem; font-weight: 650; }
+.complete-stats .stat-box span { font-size: 0.76rem; color: var(--text-muted); }
+
+/* ---------- Browse ---------- */
+.browse-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.browse-toolbar input { margin: 0; flex: 1; min-width: 180px; }
+.table-wrap { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+th { background: var(--surface-2); font-weight: 650; color: var(--text-muted); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.03em; position: sticky; top: 0; }
+tbody tr { transition: background .1s; cursor: pointer; }
+tbody tr:hover { background: var(--surface-2); }
+tbody tr:last-child td { border-bottom: none; }
+.state-badge { padding: 2px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 650; }
+.state-badge.s-new { background: var(--easy-soft); color: var(--easy); }
+.state-badge.s-learn { background: var(--hard-soft); color: var(--hard); }
+.state-badge.s-review { background: var(--good-soft); color: var(--good); }
+.state-badge.s-suspended { background: var(--danger-soft); color: var(--danger); }
+.row-actions { display: flex; gap: 2px; justify-content: flex-end; }
+.browse-select-bar {
+    display: none; align-items: center; justify-content: space-between; background: var(--accent-soft);
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 0.86rem; color: var(--text);
+}
+.browse-select-bar.active { display: flex; }
+.browse-pagination { display: flex; justify-content: center; align-items: center; gap: 14px; padding: 12px; font-size: 0.82rem; color: var(--text-muted); }
+
+/* ---------- Stats ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.stat-tile b { display: block; font-size: 1.6rem; font-weight: 650; letter-spacing: -0.02em; }
+.stat-tile span { font-size: 0.78rem; color: var(--text-muted); }
+.heatmap { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; margin-top: 10px; }
+.heat-cell { aspect-ratio: 1; border-radius: 3px; background: var(--surface-2); }
+
+/* ---------- Settings ---------- */
+.theme-swatches { display: flex; gap: 10px; margin-top: 6px; }
+.theme-swatch { width: 56px; height: 56px; border-radius: 10px; border: 2px solid var(--border); cursor: pointer; position: relative; overflow: hidden; }
+.theme-swatch.active { border-color: var(--accent); }
+.theme-swatch.light { background: linear-gradient(135deg, #fff 50%, #eef0f4 50%); }
+.theme-swatch.dark { background: linear-gradient(135deg, #1a1d24 50%, #14161c 50%); }
+.theme-swatch.amoled { background: #000; }
+.settings-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+.diag-log { background: #0c0e13; color: #6ee7a8; font-family: "SF Mono", Consolas, monospace; padding: 12px; border-radius: 8px; font-size: 0.78rem; max-height: 180px; overflow-y: auto; margin-top: 10px; line-height: 1.6; }
+
+/* ---------- Modals ---------- */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(10,10,15,0.5); backdrop-filter: blur(2px);
+    display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-lg); width: 100%; max-width: 420px;
+    max-height: 88vh; overflow-y: auto; padding: 22px; border: 1px solid var(--border);
+}
+.modal-box h3 { margin-bottom: 6px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.modal-box.wide { max-width: 560px; }
+
+/* Toast */
+#toast-stack { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.toast {
+    background: var(--text); color: var(--bg); padding: 11px 18px; border-radius: 9px; font-size: 0.86rem;
+    box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 12px; animation: toastin .18s ease;
+    font-weight: 550;
+}
+[data-theme="dark"] .toast, [data-theme="amoled"] .toast { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.toast button { background: none; border: none; color: inherit; opacity: 0.75; cursor: pointer; font-weight: 650; font-size: 0.82rem; text-decoration: underline; }
+@keyframes toastin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Bottom nav (mobile) ---------- */
+#bottom-nav { display: none; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+    #sidebar { display: none; }
+    main { padding: 16px 16px 90px; }
+    header#topbar { padding: 14px 16px; }
+    #bottom-nav {
+        display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-elevated);
+        border-top: 1px solid var(--border); justify-content: space-around; padding: 6px 0;
+        padding-bottom: env(safe-area-inset-bottom, 6px); z-index: 50;
+    }
+    #bottom-nav button {
+        background: none; border: none; color: var(--text-faint); font-size: 0.68rem; padding: 6px 4px;
+        flex: 1; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; font-weight: 600;
+    }
+    #bottom-nav button.active { color: var(--accent); }
+    .controls.rating-mode { grid-template-columns: repeat(2, 1fr); }
+    .complete-stats { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 861px) {
+    .btn-mobile-only { display: none; }
+}
+</style>
 </head>
 <body>
+<div id="toast-stack"></div>
 
-    <header>
-        <h1 id="app-title">Decks</h1>
-        <button id="header-sync-btn" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Sync Data</button>
-    </header>
-
-    <main>
-        <!-- Decks View -->
-        <div id="view-decks" class="view active">
-            <div id="subjects-container"></div>
-            <button class="btn btn-primary" onclick="app.ui.promptAddSubject()" style="width: 100%; margin-top: 20px;">+ Add Google Sheet</button>
+<div id="shell">
+    <aside id="sidebar">
+        <div class="brand">
+            <div class="brand-mark">R</div>
+            <div class="brand-name">Recall</div>
         </div>
-
-        <!-- Study View -->
-        <div id="view-study" class="view">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem;" class="text-muted">
-                <span id="study-deck-name">Deck Name</span>
-                <span>
-                    <span id="study-count-new" style="color: var(--primary)">0</span> | 
-                    <span id="study-count-learn" style="color: var(--warning)">0</span> | 
-                    <span id="study-count-due" style="color: var(--success)">0</span>
-                </span>
+        <nav class="side-nav">
+            <button class="active" data-target="decks" onclick="app.ui.switchView('decks')">
+                <span class="icon"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></span>
+                Decks
+            </button>
+            <button data-target="browse" onclick="app.ui.switchView('browse')">
+                <span class="icon"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                Browse
+            </button>
+            <button data-target="stats" onclick="app.ui.switchView('stats')">
+                <span class="icon"><svg class="i" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+                Stats
+            </button>
+            <button data-target="settings" onclick="app.ui.switchView('settings')">
+                <span class="icon"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+                Settings
+            </button>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-footer">
+            <div class="due-summary" id="sidebar-due-summary">
+                <span><span class="dot" style="background:var(--easy)"></span><b id="side-new">0</b> new</span>
+                <span><span class="dot" style="background:var(--good)"></span><b id="side-due">0</b> due</span>
             </div>
-            
-            <div id="study-container">
-                <div class="flashcard" id="flashcard">
-                    <div id="card-question"></div>
-                    <div class="card-divider"></div>
-                    <div id="card-answer"></div>
+        </div>
+    </aside>
+
+    <div id="main-col">
+        <header id="topbar">
+            <h1 id="app-title">Decks</h1>
+            <div class="topbar-actions">
+                <button id="header-sync-btn" class="btn btn-sm">
+                    <svg class="i" viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                    <span class="btn-label-full">Sync</span>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Decks View -->
+            <div id="view-decks" class="view active">
+                <div id="subjects-container"></div>
+                <button class="btn btn-primary btn-block" style="margin-top: 10px;" onclick="app.ui.openAddSubjectModal()">
+                    <svg class="i" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Google Sheet
+                </button>
+            </div>
+
+            <!-- Study View -->
+            <div id="view-study" class="view">
+                <div class="study-topbar">
+                    <button class="icon-btn" onclick="app.study.exit()" title="Exit session">
+                        <svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    <div class="study-progress-track"><div class="study-progress-fill" id="study-progress-fill" style="width:0%"></div></div>
+                    <div class="study-counts">
+                        <span style="color:var(--easy)"><span class="dot" style="background:var(--easy)"></span><span id="study-count-new">0</span></span>
+                        <span style="color:var(--hard)"><span class="dot" style="background:var(--hard)"></span><span id="study-count-learn">0</span></span>
+                        <span style="color:var(--good)"><span class="dot" style="background:var(--good)"></span><span id="study-count-due">0</span></span>
+                    </div>
                 </div>
 
-                <div class="controls" id="study-controls">
-                    <button class="btn btn-primary" id="btn-show-answer" style="padding: 20px; font-size: 1.1rem;">Show Answer</button>
+                <div id="study-container">
+                    <div class="flashcard" id="flashcard">
+                        <span class="chap-tag" id="study-chap-tag"></span>
+                        <div id="card-question"></div>
+                        <div class="card-divider"></div>
+                        <div id="card-answer"></div>
+                    </div>
+
+                    <div class="controls" id="study-controls">
+                        <button class="btn btn-primary btn-show-answer-main" id="btn-show-answer">Show Answer</button>
+                    </div>
+
+                    <div class="controls rating-mode" id="rating-controls" style="display: none;">
+                        <button class="btn-rating btn-again" onclick="app.study.rate(1)">Again <span class="time" id="time-again">1m</span></button>
+                        <button class="btn-rating btn-hard" onclick="app.study.rate(2)">Hard <span class="time" id="time-hard">5m</span></button>
+                        <button class="btn-rating btn-good" onclick="app.study.rate(3)">Good <span class="time" id="time-good">10m</span></button>
+                        <button class="btn-rating btn-easy" onclick="app.study.rate(4)">Easy <span class="time" id="time-easy">4d</span></button>
+                    </div>
+
+                    <div class="study-toolbar">
+                        <button class="btn btn-ghost btn-sm" id="btn-undo" onclick="app.study.undo()" disabled>
+                            <svg class="i" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
+                            Undo
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="app.study.toggleSuspend()">
+                            <svg class="i" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                            Suspend card
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="app.study.editCurrentCard()">
+                            <svg class="i" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                            Edit
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="controls rating-mode" id="rating-controls" style="display: none;">
-                    <button class="btn btn-rating btn-again" onclick="app.study.rate(1)">Again <span class="time" id="time-again">1m</span></button>
-                    <button class="btn btn-rating btn-hard" onclick="app.study.rate(2)">Hard <span class="time" id="time-hard">5m</span></button>
-                    <button class="btn btn-rating btn-good" onclick="app.study.rate(3)">Good <span class="time" id="time-good">10m</span></button>
-                    <button class="btn btn-rating btn-easy" onclick="app.study.rate(4)">Easy <span class="time" id="time-easy">4d</span></button>
+            </div>
+
+            <!-- Session Complete View -->
+            <div id="view-session-complete" class="view">
+                <div class="card-panel complete-panel">
+                    <svg class="complete-icon i" viewBox="0 0 24 24" stroke-width="1.6"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <h2>Session complete</h2>
+                    <p class="text-muted">You've finished all available cards in this queue.</p>
+                    <div class="complete-stats">
+                        <div class="stat-box"><b id="stat-session-total">0</b><span>Cards studied</span></div>
+                        <div class="stat-box"><b id="stat-session-acc">0%</b><span>Accuracy</span></div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top: 6px;" onclick="app.ui.switchView('decks')">Return to decks</button>
                 </div>
             </div>
-        </div>
 
-        <!-- Session Complete View -->
-        <div id="view-session-complete" class="view text-center">
-            <div class="card-panel" style="text-align: center; padding: 40px 20px;">
-                <h2>Session Complete!</h2>
-                <p class="text-muted" style="margin-bottom: 20px;">You have finished all available cards in this queue.</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; max-width: 300px; margin: 0 auto;">
-                    <span>Cards Studied:</span> <strong id="stat-session-total">0</strong>
-                    <span>Accuracy:</span> <strong id="stat-session-acc">0%</strong>
+            <!-- Browse View -->
+            <div id="view-browse" class="view">
+                <div class="browse-toolbar">
+                    <input type="text" id="browse-search" placeholder="Search cards..." onkeyup="app.browse.search()">
+                    <select id="browse-filter-subject" onchange="app.browse.render()" style="width:auto; margin:0;"></select>
+                    <select id="browse-filter-state" onchange="app.browse.render()" style="width:auto; margin:0;">
+                        <option value="">All states</option>
+                        <option value="0">New</option>
+                        <option value="learn">Learning</option>
+                        <option value="2">Review</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
                 </div>
-                <button class="btn btn-primary" style="margin-top: 30px;" onclick="app.ui.switchView('decks')">Return to Decks</button>
+                <div class="browse-select-bar" id="browse-select-bar">
+                    <span><b id="browse-select-count">0</b> selected</span>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-sm" onclick="app.browse.bulkSuspend()">Suspend/Unsuspend</button>
+                        <button class="btn btn-sm btn-danger" onclick="app.browse.bulkDelete()">Delete</button>
+                        <button class="btn btn-sm btn-ghost" onclick="app.browse.clearSelection()">Cancel</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <div class="table-scroll">
+                        <table id="browse-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px;"><input type="checkbox" id="browse-select-all" onchange="app.browse.toggleSelectAll(this)"></th>
+                                    <th>Question</th>
+                                    <th>Subject / Chapter</th>
+                                    <th>State</th>
+                                    <th>Due</th>
+                                    <th style="width:70px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="browse-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="browse-pagination" id="browse-pagination"></div>
             </div>
+
+            <!-- Stats View -->
+            <div id="view-stats" class="view">
+                <div class="stat-grid" id="stat-grid">
+                    <div class="stat-tile"><b id="stat-total">0</b><span>Total cards</span></div>
+                    <div class="stat-tile"><b id="stat-new">0</b><span>New</span></div>
+                    <div class="stat-tile"><b id="stat-learning">0</b><span>Learning</span></div>
+                    <div class="stat-tile"><b id="stat-review">0</b><span>Review</span></div>
+                    <div class="stat-tile"><b id="stat-suspended">0</b><span>Suspended</span></div>
+                    <div class="stat-tile"><b id="stat-reviews-done">0</b><span>Reviews done</span></div>
+                </div>
+                <div class="card-panel">
+                    <h3>Reviews — last 20 days</h3>
+                    <div class="heatmap" id="stat-heatmap"></div>
+                </div>
+                <div class="card-panel">
+                    <h3>By subject</h3>
+                    <div id="stat-by-subject"></div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="view-settings" class="view">
+                <div class="card-panel">
+                    <h3>Appearance</h3>
+                    <div class="theme-swatches">
+                        <div class="theme-swatch light" data-theme-val="light" onclick="app.settings.setTheme('light')" title="Light"></div>
+                        <div class="theme-swatch dark" data-theme-val="dark" onclick="app.settings.setTheme('dark')" title="Dark"></div>
+                        <div class="theme-swatch amoled" data-theme-val="amoled" onclick="app.settings.setTheme('amoled')" title="AMOLED Black"></div>
+                    </div>
+                </div>
+
+                <div class="card-panel">
+                    <h3>Google API key</h3>
+                    <p class="text-muted" style="margin-bottom: 4px;">Required to sync with Google Sheets. Stored locally in your browser only.</p>
+                    <input type="password" id="setting-api-key" placeholder="AIzaSy...">
+                    <button class="btn btn-primary btn-block" onclick="app.settings.saveApiKey()">Save key</button>
+                </div>
+
+                <div class="card-panel">
+                    <h3>Study options</h3>
+                    <div class="settings-row">
+                        <span>New cards per session</span>
+                        <input type="number" id="setting-new-limit" min="0" style="width:80px; margin:0;" onchange="app.settings.saveNewLimit(this.value)">
+                    </div>
+                </div>
+
+                <div class="card-panel">
+                    <h3>Data management</h3>
+                    <button class="btn btn-block" style="margin-bottom: 8px;" onclick="app.backup.export()">Export backup</button>
+                    <button class="btn btn-block" style="margin-bottom: 8px;" onclick="document.getElementById('import-file').click()">Import backup</button>
+                    <input type="file" id="import-file" style="display: none" accept=".json" onchange="app.backup.import(event)">
+                    <button class="btn btn-danger btn-block" onclick="app.settings.clearAllData()">Clear all local data</button>
+                </div>
+
+                <div class="card-panel">
+                    <h3>Connection diagnostics</h3>
+                    <p class="text-muted" style="margin-bottom:6px;">Monitor Google Sheets sync activity.</p>
+                    <div id="diag-log" class="diag-log">Logs will appear here during sync…</div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<nav id="bottom-nav">
+    <button class="active" onclick="app.ui.switchView('decks')" data-target="decks">
+        <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+        Decks
+    </button>
+    <button onclick="app.ui.switchView('browse')" data-target="browse">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Browse
+    </button>
+    <button onclick="app.ui.switchView('stats')" data-target="stats">
+        <svg class="i" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        Stats
+    </button>
+    <button onclick="app.ui.switchView('settings')" data-target="settings">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+    </button>
+</nav>
+
+<!-- Generic Confirm Modal -->
+<div class="modal-overlay" id="modal-confirm">
+    <div class="modal-box">
+        <h3 id="confirm-title">Are you sure?</h3>
+        <p class="text-muted" id="confirm-body">This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn" onclick="app.ui.closeModal('modal-confirm')">Cancel</button>
+            <button class="btn btn-danger" id="confirm-action-btn">Confirm</button>
         </div>
+    </div>
+</div>
 
-        <!-- Browse View -->
-        <div id="view-browse" class="view">
-            <input type="text" id="browse-search" placeholder="Search cards..." onkeyup="app.browse.search()">
-            <div class="card-panel" style="padding: 0; overflow-x: auto;">
-                <table id="browse-table">
-                    <thead>
-                        <tr>
-                            <th>Question</th>
-                            <th>Subject</th>
-                            <th>State</th>
-                            <th>Due</th>
-                        </tr>
-                    </thead>
-                    <tbody id="browse-tbody"></tbody>
-                </table>
-            </div>
+<!-- Add Subject Modal -->
+<div class="modal-overlay" id="modal-add-subject">
+    <div class="modal-box">
+        <h3>Add Google Sheet</h3>
+        <p class="text-muted">Column A = Question, Column B = Answer. Each tab becomes a chapter.</p>
+        <label class="field-label">Subject name</label>
+        <input type="text" id="add-subject-name" placeholder="e.g. CA Inter — Costing">
+        <label class="field-label">Google Sheet URL</label>
+        <input type="text" id="add-subject-url" placeholder="https://docs.google.com/spreadsheets/d/...">
+        <div class="modal-actions">
+            <button class="btn" onclick="app.ui.closeModal('modal-add-subject')">Cancel</button>
+            <button class="btn btn-primary" onclick="app.ui.submitAddSubject()">Add & sync</button>
         </div>
+    </div>
+</div>
 
-        <!-- Stats View -->
-        <div id="view-stats" class="view">
-            <div class="card-panel">
-                <h3>Global Statistics</h3>
-                <table style="margin-top: 15px;">
-                    <tr><td>Total Cards</td><td id="stat-total">0</td></tr>
-                    <tr><td>New Cards</td><td id="stat-new">0</td></tr>
-                    <tr><td>Learning Cards</td><td id="stat-learning">0</td></tr>
-                    <tr><td>Review Cards</td><td id="stat-review">0</td></tr>
-                    <tr><td>Total Reviews Completed</td><td id="stat-reviews-done">0</td></tr>
-                </table>
-            </div>
+<!-- Rename Subject Modal -->
+<div class="modal-overlay" id="modal-rename-subject">
+    <div class="modal-box">
+        <h3>Rename subject</h3>
+        <input type="text" id="rename-subject-input">
+        <div class="modal-actions">
+            <button class="btn" onclick="app.ui.closeModal('modal-rename-subject')">Cancel</button>
+            <button class="btn btn-primary" onclick="app.ui.submitRenameSubject()">Save</button>
         </div>
+    </div>
+</div>
 
-        <!-- Settings View -->
-        <div id="view-settings" class="view">
-            
-            <div class="card-panel">
-                <h3>Google API Key</h3>
-                <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 10px;">Required to sync securely with Google Sheets. This is saved locally in your browser.</p>
-                <input type="password" id="setting-api-key" placeholder="AIzaSy...">
-                <button class="btn btn-primary" onclick="app.settings.saveApiKey()" style="width: 100%;">Save Key</button>
-            </div>
-
-            <div class="card-panel">
-                <h3>Appearance</h3>
-                <select id="theme-select" onchange="app.settings.setTheme(this.value)">
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="amoled">AMOLED Black</option>
-                </select>
-            </div>
-
-            <div class="card-panel">
-                <h3>Data Management</h3>
-                <button class="btn" onclick="app.backup.export()" style="width: 100%; margin-bottom: 10px;">Export Backup</button>
-                <button class="btn" onclick="document.getElementById('import-file').click()" style="width: 100%; margin-bottom: 10px;">Import Backup</button>
-                <input type="file" id="import-file" style="display: none" accept=".json" onchange="app.backup.import(event)">
-                <button class="btn" style="width: 100%; color: var(--danger); border-color: var(--danger);" onclick="app.settings.clearAllData()">Clear All Local Data</button>
-            </div>
-
-            <div class="card-panel">
-                <h3>Connection Diagnostics</h3>
-                <p class="text-muted" style="font-size: 0.8rem; margin-bottom:10px;">Monitor the API synchronization.</p>
-                <div id="diag-log" class="diag-log">Logs will appear here during sync...</div>
-            </div>
+<!-- Edit Card Modal -->
+<div class="modal-overlay" id="modal-edit-card">
+    <div class="modal-box wide">
+        <h3>Edit card</h3>
+        <p class="text-muted">Edits here are local only — the next sheet sync may overwrite them if the sheet still has the old text in this row.</p>
+        <label class="field-label">Question</label>
+        <textarea id="edit-card-front"></textarea>
+        <label class="field-label">Answer</label>
+        <textarea id="edit-card-back"></textarea>
+        <div class="modal-actions">
+            <button class="btn" onclick="app.ui.closeModal('modal-edit-card')">Cancel</button>
+            <button class="btn btn-primary" onclick="app.ui.submitEditCard()">Save</button>
         </div>
-    </main>
-
-    <nav id="bottom-nav">
-        <button class="active" onclick="app.ui.switchView('decks')" data-target="decks">Decks</button>
-        <button onclick="app.ui.switchView('browse')" data-target="browse">Browse</button>
-        <button onclick="app.ui.switchView('stats')" data-target="stats">Stats</button>
-        <button onclick="app.ui.switchView('settings')" data-target="settings">Settings</button>
-    </nav>
+    </div>
+</div>
 
 <script>
 /**
- * CORE APPLICATION LOGIC
- * Phase 1: Single file, no PWA, local-first IndexedDB, FSRS scheduler, Google Sheets API v4 Sync
+ * RECALL — Spaced Repetition Study App
+ * Single-file-friendly logic, local-first IndexedDB, FSRS scheduler, Google Sheets API v4 sync.
  */
 
 const app = {
     // ----------------------------------------------------------------------
-    // 1. UTILITIES & CRYPTO
+    // UTILITIES
     // ----------------------------------------------------------------------
     utils: {
         uuid: () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -256,12 +728,26 @@ const app = {
             const buf = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(str));
             return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
         },
-        escapeHTML: (str) => str.replace(/[&<>'"]/g, tag => ({'&': '&amp;','<': '&lt;','>': '&gt;',"'": '&#39;','"': '&quot;'}[tag])),
-        formatText: (str) => app.utils.escapeHTML(str).replace(/\n/g, '<br>')
+        escapeHTML: (str) => (str || '').replace(/[&<>'"]/g, tag => ({'&': '&amp;','<': '&lt;','>': '&gt;',"'": '&#39;','"': '&quot;'}[tag])),
+        formatText: (str) => app.utils.formatText_inner(str),
+        formatText_inner: (str) => app.utils.escapeHTML(str).replace(/\n/g, '<br>'),
+        toast(msg, opts = {}) {
+            const stack = document.getElementById('toast-stack');
+            const t = document.createElement('div');
+            t.className = 'toast';
+            let html = `<span>${app.utils.escapeHTML(msg)}</span>`;
+            if (opts.actionLabel) html += `<button>${app.utils.escapeHTML(opts.actionLabel)}</button>`;
+            t.innerHTML = html;
+            if (opts.actionLabel && opts.onAction) {
+                t.querySelector('button').onclick = () => { opts.onAction(); t.remove(); };
+            }
+            stack.appendChild(t);
+            setTimeout(() => t.remove(), opts.duration || 3500);
+        }
     },
 
     // ----------------------------------------------------------------------
-    // 2. INDEXED DB WRAPPER
+    // INDEXED DB WRAPPER
     // ----------------------------------------------------------------------
     db: {
         instance: null,
@@ -317,12 +803,12 @@ const app = {
     },
 
     // ----------------------------------------------------------------------
-    // 3. FSRS v4 SCHEDULER
+    // FSRS v4 SCHEDULER
     // ----------------------------------------------------------------------
     fsrs: {
         weights: [0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61],
         retention: 0.9,
-        learningSteps: [1, 10], 
+        learningSteps: [1, 10],
         relearningSteps: [10],
 
         createEmptyCard() {
@@ -331,7 +817,7 @@ const app = {
                 elapsed_days: 0, scheduled_days: 0, reps: 0, lapses: 0, suspended: false
             };
         },
-        
+
         getFactor() { return 9 / 10; },
 
         nextInterval(s) {
@@ -344,38 +830,35 @@ const app = {
             let intervalDays = 0;
 
             if (card.state === 0) {
-                // New Card
                 next.difficulty = Math.max(1, Math.min(10, this.weights[4] - this.weights[5] * (rating - 3)));
                 next.stability = this.weights[rating - 1];
                 if (rating === 1 || rating === 2) { next.state = 1; intervalDays = this.learningSteps[0] / 1440; }
                 else if (rating === 3) { next.state = 1; intervalDays = this.learningSteps[1] / 1440; }
                 else if (rating === 4) { next.state = 2; intervalDays = this.nextInterval(next.stability); }
-            } 
+            }
             else if (card.state === 1 || card.state === 3) {
-                // Learning / Relearning
                 if (rating === 1 || rating === 2) { intervalDays = this.learningSteps[0] / 1440; }
                 else if (rating === 3) { next.state = 2; intervalDays = this.nextInterval(next.stability); }
                 else if (rating === 4) { next.state = 2; intervalDays = this.nextInterval(next.stability) + 1; }
-            } 
+            }
             else if (card.state === 2) {
-                // Review
                 next.elapsed_days = Math.max(0, (now - card.due) / 86400000 + card.scheduled_days);
                 let retrievability = Math.pow(1 + next.elapsed_days / (9 * card.stability), -0.5);
-                
+
                 next.difficulty = Math.max(1, Math.min(10, card.difficulty - this.weights[6] * (rating - 3)));
-                
-                if (rating === 1) { 
+
+                if (rating === 1) {
                     next.lapses++;
                     next.state = 3;
                     next.stability = Math.max(0.1, this.weights[11] * Math.pow(card.difficulty, -this.weights[12]) * Math.pow(card.stability, this.weights[13]) * (1 - Math.pow(Math.E, -this.weights[14] * next.elapsed_days)));
                     intervalDays = this.relearningSteps[0] / 1440;
                 } else {
                     let s_inc;
-                    if (rating === 2) s_inc = this.weights[15] * Math.pow(card.difficulty, -this.weights[16]) * (Math.pow(Math.E, this.weights[17] || 0) - 1); 
+                    if (rating === 2) s_inc = this.weights[15] * Math.pow(card.difficulty, -this.weights[16]) * (Math.pow(Math.E, this.weights[17] || 0) - 1);
                     else if (rating === 3) s_inc = Math.pow(Math.E, this.weights[8]) * (11 - card.difficulty) * Math.pow(card.stability, -this.weights[9]) * (Math.pow(Math.E, this.weights[10] * (1 - retrievability)) - 1);
-                    else s_inc = Math.pow(Math.E, this.weights[8]) * (11 - card.difficulty) * Math.pow(card.stability, -this.weights[9]) * (Math.pow(Math.E, this.weights[10] * (1 - retrievability)) - 1) * this.weights[15]; 
+                    else s_inc = Math.pow(Math.E, this.weights[8]) * (11 - card.difficulty) * Math.pow(card.stability, -this.weights[9]) * (Math.pow(Math.E, this.weights[10] * (1 - retrievability)) - 1) * this.weights[15];
 
-                    next.stability = card.stability + (s_inc || card.stability * 0.1); 
+                    next.stability = card.stability + (s_inc || card.stability * 0.1);
                     intervalDays = this.nextInterval(next.stability);
                 }
             }
@@ -407,61 +890,61 @@ const app = {
     },
 
     // ----------------------------------------------------------------------
-    // 4. GOOGLE SHEETS API V4 ENGINE
+    // GOOGLE SHEETS API V4 ENGINE
     // ----------------------------------------------------------------------
     sync: {
         log(msg) {
             const el = document.getElementById('diag-log');
-            if(el) { el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
+            if(el) { el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${app.utils.escapeHTML(msg)}</div>`; el.scrollTop = el.scrollHeight; }
             console.log("[Sync]", msg);
         },
         extractSheetId(url) {
-            // Extracts standard ID from https://docs.google.com/spreadsheets/d/ID_HERE/edit
             const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
             return match ? match[1] : null;
         },
         async runAll() {
             const apiKeySettings = await app.db.get('settings', 'api_key');
             if (!apiKeySettings || !apiKeySettings.value) {
-                alert("Please add your Google API Key in Settings first.");
+                app.utils.toast("Add your Google API key in Settings first.");
                 app.ui.switchView('settings');
                 return;
             }
             this.log("Starting sync for all subjects...");
             const subjects = await app.db.getAll('subjects');
+            if (subjects.length === 0) { app.utils.toast("No subjects to sync yet."); return; }
             for (let sub of subjects) await this.syncSubject(sub, apiKeySettings.value);
             app.ui.renderDecks();
+            app.utils.toast("Sync complete");
         },
         async syncSubject(subject, apiKey) {
             try {
                 this.log(`Syncing Subject: ${subject.name}`);
-                
+
                 const sheetId = this.extractSheetId(subject.url);
                 if (!sheetId) throw new Error("Could not extract Spreadsheet ID from URL. Ensure it's a standard Google Sheets URL.");
 
-                // 1. Fetch spreadsheet metadata to discover chapters (tabs)
                 this.log(`Fetching spreadsheet metadata...`);
                 const metaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`;
                 const metaRes = await fetch(metaUrl);
                 if (!metaRes.ok) throw new Error(`Metadata Fetch Failed: ${metaRes.statusText}. Check API key and sheet permissions.`);
                 const metaData = await metaRes.json();
 
-                // Process each tab
                 for (let sheet of metaData.sheets) {
                     const tabName = sheet.properties.title;
                     const gid = sheet.properties.sheetId.toString();
-                    
+
                     this.log(`Syncing chapter: ${tabName}`);
-                    
-                    // Upsert Chapter
+
                     let chapterId = `${subject.id}_${gid}`;
                     let chapter = await app.db.get('chapters', chapterId);
                     if (!chapter) {
                         chapter = { id: chapterId, subjectId: subject.id, gid: gid, name: tabName };
                         await app.db.put('chapters', chapter);
+                    } else if (chapter.name !== tabName) {
+                        chapter.name = tabName;
+                        await app.db.put('chapters', chapter);
                     }
 
-                    // 2. Fetch row data for this specific tab
                     const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(tabName)}?key=${apiKey}`;
                     const dataRes = await fetch(dataUrl);
                     if (!dataRes.ok) throw new Error(`Data Fetch Failed for ${tabName}: ${dataRes.statusText}`);
@@ -477,6 +960,7 @@ const app = {
 
             } catch (err) {
                 this.log(`ERROR syncing ${subject.name}: ${err.message}`);
+                app.utils.toast(`Sync failed for ${subject.name}`);
             }
         },
         async reconcileCards(subjectId, chapterId, rows) {
@@ -484,7 +968,6 @@ const app = {
             let unmatchedCards = new Set(existingCards.map(c => c.id));
             let added = 0, updated = 0, unchanged = 0;
 
-            // Skip header row (start at i = 1)
             for (let i = 1; i < rows.length; i++) {
                 if (!rows[i] || rows[i].length < 2) continue;
                 let front = rows[i][0] ? rows[i][0].trim() : "";
@@ -494,14 +977,12 @@ const app = {
                 let qHash = await app.utils.hash(front);
                 let aHash = await app.utils.hash(back);
                 let matchId = null;
-                
-                // 1. Exact Match
+
                 let exactCard = existingCards.find(c => c.qHash === qHash && c.aHash === aHash);
                 if (exactCard && unmatchedCards.has(exactCard.id)) {
                     matchId = exactCard.id;
                     unchanged++;
-                } 
-                // 2. Row Match (Text was edited)
+                }
                 else {
                     let rowCard = existingCards.find(c => c.row_index === i);
                     if (rowCard && unmatchedCards.has(rowCard.id)) {
@@ -518,7 +999,12 @@ const app = {
                     card.qHash = qHash;
                     card.aHash = aHash;
                     card.row_index = i;
-                    card.suspended = false; // Restores card if it was previously orphaned
+                    // Don't silently un-suspend a card the user deliberately suspended by hand;
+                    // only auto-restore cards that were orphaned by a previous sync (missing row).
+                    if (card.suspended && card.orphaned) {
+                        card.suspended = false;
+                        card.orphaned = false;
+                    }
                     await app.db.put('cards', card);
                 } else {
                     let fsrsState = app.fsrs.createEmptyCard();
@@ -531,11 +1017,13 @@ const app = {
                 }
             }
 
-            // Orphan remaining unmatched cards (if rows were deleted from sheet)
             for (let id of unmatchedCards) {
                 let c = await app.db.get('cards', id);
-                c.suspended = true;
-                await app.db.put('cards', c);
+                if (!c.suspended) {
+                    c.suspended = true;
+                    c.orphaned = true;
+                    await app.db.put('cards', c);
+                }
             }
 
             this.log(`  Added: ${added} | Updated: ${updated} | Unchanged: ${unchanged} | Orphaned: ${unmatchedCards.size}`);
@@ -543,23 +1031,37 @@ const app = {
     },
 
     // ----------------------------------------------------------------------
-    // 5. STUDY LOGIC & QUEUE
+    // STUDY LOGIC & QUEUE
     // ----------------------------------------------------------------------
     study: {
         queue: [], currentCard: null, activeContext: null, sessionStats: { studied: 0, good: 0 },
-        
+        history: [], // undo stack: { card (prev state), review (id) }
+        chapNameCache: {},
+
         async start(type, id, name) {
             this.activeContext = { type, id, name };
             this.sessionStats = { studied: 0, good: 0 };
-            document.getElementById('study-deck-name').innerText = name;
-            
+            this.history = [];
+            document.getElementById('btn-undo').disabled = true;
+
+            const chapters = await app.db.getAll('chapters');
+            this.chapNameCache = {};
+            chapters.forEach(c => this.chapNameCache[c.id] = c.name);
+
             await this.buildQueue();
             if (this.queue.length === 0) {
-                app.ui.switchView('session-complete');
+                app.utils.toast("No cards due right now.");
+                app.ui.switchView('decks');
             } else {
                 app.ui.switchView('study');
                 this.nextCard();
             }
+        },
+
+        async getNewLimit() {
+            let setting = await app.db.get('settings', 'new_limit');
+            let n = setting ? parseInt(setting.value, 10) : 20;
+            return isNaN(n) ? 20 : n;
         },
 
         async buildQueue() {
@@ -571,7 +1073,7 @@ const app = {
             }
 
             let now = Date.now();
-            let limitNew = 20; 
+            let limitNew = await this.getNewLimit();
             let newCards = [], learnCards = [], reviewCards = [];
 
             for (let c of allCards) {
@@ -585,19 +1087,28 @@ const app = {
                 }
             }
 
-            newCards.sort(() => Math.random() - 0.5); // Shuffle new cards
-            
+            newCards.sort(() => Math.random() - 0.5);
+
             this.queue = [...learnCards, ...reviewCards, ...newCards];
-            
+            this.totalInSession = this.queue.length;
+
             document.getElementById('study-count-new').innerText = newCards.length;
             document.getElementById('study-count-learn').innerText = learnCards.length;
             document.getElementById('study-count-due').innerText = reviewCards.length;
         },
 
+        updateProgress() {
+            let done = this.sessionStats.studied;
+            let total = Math.max(1, done + this.queue.length);
+            let pct = Math.round((done / total) * 100);
+            document.getElementById('study-progress-fill').style.width = pct + '%';
+        },
+
         nextCard() {
+            this.updateProgress();
             if (this.queue.length === 0) {
                 document.getElementById('stat-session-total').innerText = this.sessionStats.studied;
-                document.getElementById('stat-session-acc').innerText = this.sessionStats.studied > 0 
+                document.getElementById('stat-session-acc').innerText = this.sessionStats.studied > 0
                     ? Math.round((this.sessionStats.good / this.sessionStats.studied)*100) + '%' : '0%';
                 app.ui.switchView('session-complete');
                 return;
@@ -608,7 +1119,8 @@ const app = {
             flashcard.classList.remove('show-answer');
             document.getElementById('card-question').innerHTML = app.utils.formatText(this.currentCard.front);
             document.getElementById('card-answer').innerHTML = app.utils.formatText(this.currentCard.back);
-            
+            document.getElementById('study-chap-tag').innerText = this.chapNameCache[this.currentCard.chapterId] || '';
+
             document.getElementById('study-controls').style.display = 'grid';
             document.getElementById('rating-controls').style.display = 'none';
         },
@@ -628,14 +1140,19 @@ const app = {
 
         async rate(rating) {
             if(!this.currentCard) return;
-            
+
             let card = this.currentCard;
             let updatedCard = app.fsrs.calculate(card, rating);
-            
+
+            // Save undo snapshot (pre-rating card state + the review we're about to write)
+            let reviewId = app.utils.uuid();
+            this.history.push({ prevCard: { ...card }, reviewId, queueSnapshot: [...this.queue] });
+            document.getElementById('btn-undo').disabled = false;
+
             await app.db.put('cards', updatedCard);
 
             let review = {
-                id: app.utils.uuid(), cardId: card.id, ts: Date.now(),
+                id: reviewId, cardId: card.id, ts: Date.now(),
                 rating: rating, state: card.state, nextState: updatedCard.state
             };
             await app.db.put('reviews', review);
@@ -643,26 +1160,296 @@ const app = {
             this.sessionStats.studied++;
             if (rating >= 3) this.sessionStats.good++;
 
-            this.queue.shift(); 
+            this.queue.shift();
             if (updatedCard.state === 1 || updatedCard.state === 3) {
-                if (updatedCard.due <= Date.now() + 15*60000) { 
+                if (updatedCard.due <= Date.now() + 15*60000) {
                     this.queue.splice(Math.min(this.queue.length, 3), 0, updatedCard);
                 }
             }
 
             this.nextCard();
+        },
+
+        async undo() {
+            let last = this.history.pop();
+            if (!last) return;
+            await app.db.put('cards', last.prevCard);
+            await app.db.delete('reviews', last.reviewId);
+            this.sessionStats.studied = Math.max(0, this.sessionStats.studied - 1);
+            this.queue = last.queueSnapshot;
+            document.getElementById('btn-undo').disabled = this.history.length === 0;
+            app.utils.toast("Last review undone");
+            this.nextCard();
+        },
+
+        async toggleSuspend() {
+            if (!this.currentCard) return;
+            let card = await app.db.get('cards', this.currentCard.id);
+            card.suspended = !card.suspended;
+            await app.db.put('cards', card);
+            app.utils.toast(card.suspended ? "Card suspended" : "Card unsuspended");
+            this.queue.shift();
+            this.nextCard();
+        },
+
+        editCurrentCard() {
+            if (!this.currentCard) return;
+            app.ui.openEditCardModal(this.currentCard.id, () => {
+                // refresh in-memory card + visible text after save
+                app.db.get('cards', this.currentCard.id).then(c => {
+                    this.currentCard = c;
+                    document.getElementById('card-question').innerHTML = app.utils.formatText(c.front);
+                    document.getElementById('card-answer').innerHTML = app.utils.formatText(c.back);
+                });
+            });
+        },
+
+        exit() {
+            app.ui.switchView('decks');
         }
     },
 
     // ----------------------------------------------------------------------
-    // 6. UI & ROUTING
+    // BROWSE
+    // ----------------------------------------------------------------------
+    browse: {
+        selected: new Set(),
+        page: 0,
+        pageSize: 50,
+        allCardsCache: [],
+
+        async populateFilterOptions() {
+            const subjects = await app.db.getAll('subjects');
+            const sel = document.getElementById('browse-filter-subject');
+            const current = sel.value;
+            sel.innerHTML = '<option value="">All subjects</option>' +
+                subjects.map(s => `<option value="${s.id}">${app.utils.escapeHTML(s.name)}</option>`).join('');
+            sel.value = current || "";
+        },
+
+        async render() {
+            await this.populateFilterOptions();
+            const cards = await app.db.getAll('cards');
+            const chapters = await app.db.getAll('chapters');
+            const subjects = await app.db.getAll('subjects');
+
+            let chapMap = {}; chapters.forEach(c => chapMap[c.id] = c);
+            let subMap = {}; subjects.forEach(s => subMap[s.id] = s);
+
+            const q = (document.getElementById('browse-search').value || '').toLowerCase();
+            const subjectFilter = document.getElementById('browse-filter-subject').value;
+            const stateFilter = document.getElementById('browse-filter-state').value;
+
+            let filtered = cards.filter(c => {
+                if (subjectFilter && c.subjectId !== subjectFilter) return false;
+                if (stateFilter === 'suspended' && !c.suspended) return false;
+                if (stateFilter === 'learn' && !((c.state === 1 || c.state === 3) && !c.suspended)) return false;
+                if (stateFilter !== '' && stateFilter !== 'suspended' && stateFilter !== 'learn' && (c.suspended || c.state !== parseInt(stateFilter))) return false;
+                if (q) {
+                    let hay = (c.front + ' ' + c.back).toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            filtered.sort((a, b) => a.due - b.due);
+            this.allCardsCache = filtered;
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+            this.page = Math.min(this.page, totalPages - 1);
+            const pageCards = filtered.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+
+            const tbody = document.getElementById('browse-tbody');
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">No cards match.</td></tr>`;
+            }
+
+            let states = ['New', 'Learn', 'Review', 'Relearn'];
+            let stateClass = ['s-new', 's-learn', 's-review', 's-learn'];
+
+            pageCards.forEach(c => {
+                let tr = document.createElement('tr');
+                let chap = chapMap[c.chapterId];
+                let sub = chap ? subMap[chap.subjectId] : null;
+                let badgeClass = c.suspended ? 's-suspended' : stateClass[c.state];
+                let badgeLabel = c.suspended ? 'Suspended' : states[c.state];
+                tr.innerHTML = `
+                    <td onclick="event.stopPropagation()"><input type="checkbox" class="row-check" data-id="${c.id}" ${app.browse.selected.has(c.id) ? 'checked' : ''} onchange="app.browse.toggleSelect('${c.id}', this.checked)"></td>
+                    <td>${app.utils.escapeHTML(c.front.substring(0, 60))}${c.front.length>60?'…':''}</td>
+                    <td>${sub ? app.utils.escapeHTML(sub.name) : '?'} <span class="text-faint">/ ${chap ? app.utils.escapeHTML(chap.name) : '?'}</span></td>
+                    <td><span class="state-badge ${badgeClass}">${badgeLabel}</span></td>
+                    <td>${new Date(c.due).toLocaleDateString()}</td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="icon-btn" title="Edit" onclick="event.stopPropagation(); app.ui.openEditCardModal('${c.id}', () => app.browse.render())">
+                                <svg class="i" viewBox="0 0 24 24" width="15" height="15"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                            </button>
+                            <button class="icon-btn danger" title="Delete" onclick="event.stopPropagation(); app.browse.deleteCard('${c.id}')">
+                                <svg class="i" viewBox="0 0 24 24" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tr.onclick = () => app.ui.openEditCardModal(c.id, () => app.browse.render());
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('browse-pagination').innerHTML = filtered.length > this.pageSize
+                ? `<button class="btn btn-sm btn-ghost" onclick="app.browse.prevPage()" ${this.page===0?'disabled':''}>Prev</button>
+                   <span>Page ${this.page+1} of ${totalPages}</span>
+                   <button class="btn btn-sm btn-ghost" onclick="app.browse.nextPage()" ${this.page>=totalPages-1?'disabled':''}>Next</button>`
+                : '';
+
+            this.updateSelectBar();
+        },
+
+        prevPage() { this.page = Math.max(0, this.page - 1); this.render(); },
+        nextPage() { this.page++; this.render(); },
+
+        search() { this.page = 0; this.render(); },
+
+        toggleSelect(id, checked) {
+            if (checked) this.selected.add(id); else this.selected.delete(id);
+            this.updateSelectBar();
+        },
+        toggleSelectAll(checkbox) {
+            const boxes = document.querySelectorAll('.row-check');
+            boxes.forEach(b => {
+                b.checked = checkbox.checked;
+                if (checkbox.checked) this.selected.add(b.dataset.id); else this.selected.delete(b.dataset.id);
+            });
+            this.updateSelectBar();
+        },
+        clearSelection() {
+            this.selected.clear();
+            document.querySelectorAll('.row-check').forEach(b => b.checked = false);
+            const selectAll = document.getElementById('browse-select-all');
+            if (selectAll) selectAll.checked = false;
+            this.updateSelectBar();
+        },
+        updateSelectBar() {
+            const bar = document.getElementById('browse-select-bar');
+            const count = this.selected.size;
+            document.getElementById('browse-select-count').innerText = count;
+            bar.classList.toggle('active', count > 0);
+        },
+
+        async deleteCard(id) {
+            app.ui.confirm(
+                "Delete card?",
+                "This permanently removes this card and its review history. It won't come back on next sync unless the row still exists in the sheet.",
+                async () => {
+                    await app.db.delete('cards', id);
+                    let reviews = await app.db.getAll('reviews', 'cardId', id);
+                    for (let r of reviews) await app.db.delete('reviews', r.id);
+                    app.utils.toast("Card deleted");
+                    app.browse.render();
+                }
+            );
+        },
+
+        async bulkSuspend() {
+            const ids = [...this.selected];
+            for (let id of ids) {
+                let c = await app.db.get('cards', id);
+                if (c) { c.suspended = !c.suspended; await app.db.put('cards', c); }
+            }
+            app.utils.toast(`Toggled suspend on ${ids.length} card(s)`);
+            this.clearSelection();
+            this.render();
+        },
+
+        async bulkDelete() {
+            const ids = [...this.selected];
+            app.ui.confirm(
+                `Delete ${ids.length} card(s)?`,
+                "This permanently removes these cards and their review history.",
+                async () => {
+                    for (let id of ids) {
+                        await app.db.delete('cards', id);
+                        let reviews = await app.db.getAll('reviews', 'cardId', id);
+                        for (let r of reviews) await app.db.delete('reviews', r.id);
+                    }
+                    app.utils.toast(`${ids.length} card(s) deleted`);
+                    this.clearSelection();
+                    this.render();
+                }
+            );
+        }
+    },
+
+    // ----------------------------------------------------------------------
+    // STATS
+    // ----------------------------------------------------------------------
+    stats: {
+        async render() {
+            const cards = await app.db.getAll('cards');
+            const reviews = await app.db.getAll('reviews');
+            const subjects = await app.db.getAll('subjects');
+            const chapters = await app.db.getAll('chapters');
+
+            document.getElementById('stat-total').innerText = cards.length;
+            document.getElementById('stat-new').innerText = cards.filter(c => c.state===0 && !c.suspended).length;
+            document.getElementById('stat-learning').innerText = cards.filter(c => (c.state===1||c.state===3) && !c.suspended).length;
+            document.getElementById('stat-review').innerText = cards.filter(c => c.state===2 && !c.suspended).length;
+            document.getElementById('stat-suspended').innerText = cards.filter(c => c.suspended).length;
+            document.getElementById('stat-reviews-done').innerText = reviews.length;
+
+            // Heatmap: last 20 days review counts
+            let dayCounts = {};
+            reviews.forEach(r => {
+                let d = new Date(r.ts);
+                let key = d.toLocaleDateString('en-CA'); 
+                dayCounts[key] = (dayCounts[key] || 0) + 1;
+            });
+            let maxCount = Math.max(1, ...Object.values(dayCounts));
+            let heatmapHtml = '';
+            for (let i = 19; i >= 0; i--) {
+                let d = new Date(Date.now() - i * 86400000);
+                let key = d.toLocaleDateString('en-CA');
+                let count = dayCounts[key] || 0;
+                let intensity = count === 0 ? 0 : Math.min(1, count / maxCount);
+                let bg = count === 0 ? 'var(--surface-2)' : `color-mix(in srgb, var(--good) ${Math.round(intensity*80)+20}%, var(--surface-2))`;
+                heatmapHtml += `<div class="heat-cell" style="background:${bg}" title="${key}: ${count} reviews"></div>`;
+            }
+            document.getElementById('stat-heatmap').innerHTML = heatmapHtml;
+
+            // By-subject breakdown
+            let chapMap = {}; chapters.forEach(c => chapMap[c.id] = c.subjectId);
+            let bySubject = document.getElementById('stat-by-subject');
+            if (subjects.length === 0) {
+                bySubject.innerHTML = `<p class="text-muted">No subjects yet.</p>`;
+            } else {
+                bySubject.innerHTML = subjects.map(s => {
+                    let subCards = cards.filter(c => c.subjectId === s.id && !c.suspended);
+                    let due = subCards.filter(c => (c.state===1||c.state===2||c.state===3) && c.due <= Date.now()).length;
+                    return `<div class="settings-row"><span>${app.utils.escapeHTML(s.name)}</span><span class="text-muted">${subCards.length} cards · ${due} due</span></div>`;
+                }).join('');
+            }
+        }
+    },
+
+    // ----------------------------------------------------------------------
+    // UI & ROUTING
     // ----------------------------------------------------------------------
     ui: {
+        openMenuId: null,
+
         init() {
             document.getElementById('header-sync-btn').onclick = () => app.sync.runAll();
             document.getElementById('btn-show-answer').onclick = () => app.study.showAnswer();
-            
+
             document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    app.ui.closeAllModals();
+                    return;
+                }
+                
+                // IMPORTANT: Ignore all other shortcuts if typing in an input/textarea
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
                 if (document.getElementById('view-study').classList.contains('active')) {
                     if (e.code === 'Space') {
                         e.preventDefault();
@@ -675,28 +1462,236 @@ const app = {
                         if (e.key === '3') app.study.rate(3);
                         if (e.key === '4') app.study.rate(4);
                     }
+                    if (e.key.toLowerCase() === 'u') app.study.undo();
                 }
             });
 
+            document.addEventListener('click', (e) => {
+                if (this.openMenuId && !e.target.closest('.menu-wrap')) this.closeAllMenus();
+            });
+
+            document.querySelectorAll('.modal-overlay').forEach(m => {
+                m.addEventListener('click', (e) => { if (e.target === m) this.closeModal(m.id); });
+            });
+
             this.switchView('decks');
+            this.refreshSidebarSummary();
         },
 
         switchView(id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            
+            document.querySelectorAll('.side-nav button, #bottom-nav button').forEach(b => b.classList.remove('active'));
+
             document.getElementById(`view-${id}`).classList.add('active');
-            let navBtn = document.querySelector(`nav button[data-target="${id}"]`);
-            if (navBtn) navBtn.classList.add('active');
+            document.querySelectorAll(`[data-target="${id}"]`).forEach(b => b.classList.add('active'));
 
             let titles = { 'decks': 'Decks', 'browse': 'Browse', 'stats': 'Statistics', 'settings': 'Settings', 'study': 'Study', 'session-complete': 'Session Summary' };
-            document.getElementById('app-title').innerText = titles[id];
+            document.getElementById('app-title').innerText = titles[id] || '';
 
             if (id === 'decks') this.renderDecks();
             if (id === 'stats') app.stats.render();
             if (id === 'browse') app.browse.render();
-            
+            if (id === 'decks' || id === 'browse' || id === 'stats') this.refreshSidebarSummary();
+
             window.scrollTo(0, 0);
+        },
+
+        async refreshSidebarSummary() {
+            const cards = await app.db.getAll('cards');
+            let now = Date.now();
+            let newCount = cards.filter(c => c.state === 0 && !c.suspended).length;
+            let dueCount = cards.filter(c => (c.state===1||c.state===2||c.state===3) && !c.suspended && c.due <= now).length;
+            document.getElementById('side-new').innerText = newCount;
+            document.getElementById('side-due').innerText = dueCount;
+        },
+
+        closeAllMenus() {
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.remove());
+            this.openMenuId = null;
+        },
+
+        toggleSubjectMenu(evt, subjectId) {
+            evt.stopPropagation();
+            if (this.openMenuId === subjectId) { this.closeAllMenus(); return; }
+            this.closeAllMenus();
+            this.openMenuId = subjectId;
+
+            const wrap = evt.currentTarget.closest('.menu-wrap');
+            const menu = document.createElement('div');
+            menu.className = 'dropdown-menu';
+            menu.innerHTML = `
+                <button onclick="app.ui.openRenameSubjectModal('${subjectId}')">
+                    <svg class="i" viewBox="0 0 24 24" width="14" height="14"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    Rename
+                </button>
+                <button onclick="app.sync.syncSubjectById('${subjectId}')">
+                    <svg class="i" viewBox="0 0 24 24" width="14" height="14"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/></svg>
+                    Sync now
+                </button>
+                <hr>
+                <button class="danger" onclick="app.ui.deleteSubjectFlow('${subjectId}')">
+                    <svg class="i" viewBox="0 0 24 24" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                    Delete subject
+                </button>
+            `;
+            wrap.appendChild(menu);
+        },
+
+        toggleChapterMenu(evt, chapterId) {
+            evt.stopPropagation();
+            if (this.openMenuId === chapterId) { this.closeAllMenus(); return; }
+            this.closeAllMenus();
+            this.openMenuId = chapterId;
+
+            const wrap = evt.currentTarget.closest('.menu-wrap');
+            const menu = document.createElement('div');
+            menu.className = 'dropdown-menu';
+            menu.innerHTML = `
+                <button class="danger" onclick="app.ui.deleteChapterFlow('${chapterId}')">
+                    <svg class="i" viewBox="0 0 24 24" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                    Delete chapter
+                </button>
+            `;
+            wrap.appendChild(menu);
+        },
+
+        async deleteSubjectFlow(subjectId) {
+            this.closeAllMenus();
+            const subject = await app.db.get('subjects', subjectId);
+            if (!subject) return;
+            const chapters = await app.db.getAll('chapters', 'subjectId', subjectId);
+            const cards = await app.db.getAll('cards', 'subjectId', subjectId);
+
+            this.confirm(
+                `Delete "${subject.name}"?`,
+                `This removes the subject, its ${chapters.length} chapter(s), all ${cards.length} card(s), and their review history from this device. Your Google Sheet is not affected.`,
+                async () => {
+                    for (let c of cards) {
+                        await app.db.delete('cards', c.id);
+                        let reviews = await app.db.getAll('reviews', 'cardId', c.id);
+                        for (let r of reviews) await app.db.delete('reviews', r.id);
+                    }
+                    for (let ch of chapters) await app.db.delete('chapters', ch.id);
+                    await app.db.delete('subjects', subjectId);
+                    app.utils.toast(`Deleted "${subject.name}"`);
+                    app.ui.renderDecks();
+                    app.ui.refreshSidebarSummary();
+                }
+            );
+        },
+
+        async deleteChapterFlow(chapterId) {
+            this.closeAllMenus();
+            const chapter = await app.db.get('chapters', chapterId);
+            if (!chapter) return;
+            const cards = await app.db.getAll('cards', 'chapterId', chapterId);
+
+            this.confirm(
+                `Delete chapter "${chapter.name}"?`,
+                `This removes this chapter and its ${cards.length} card(s) from this device. It will be re-added on next sync if the sheet tab still exists.`,
+                async () => {
+                    for (let c of cards) {
+                        await app.db.delete('cards', c.id);
+                        let reviews = await app.db.getAll('reviews', 'cardId', c.id);
+                        for (let r of reviews) await app.db.delete('reviews', r.id);
+                    }
+                    await app.db.delete('chapters', chapterId);
+                    app.utils.toast(`Deleted "${chapter.name}"`);
+                    app.ui.renderDecks();
+                    app.ui.refreshSidebarSummary();
+                }
+            );
+        },
+
+        openRenameSubjectModal(subjectId) {
+            this.closeAllMenus();
+            app.db.get('subjects', subjectId).then(subject => {
+                if (!subject) return;
+                this._renameSubjectId = subjectId;
+                document.getElementById('rename-subject-input').value = subject.name;
+                this.openModal('modal-rename-subject');
+            });
+        },
+
+        async submitRenameSubject() {
+            const name = document.getElementById('rename-subject-input').value.trim();
+            if (!name) { app.utils.toast("Name can't be empty"); return; }
+            const subject = await app.db.get('subjects', this._renameSubjectId);
+            subject.name = name;
+            await app.db.put('subjects', subject);
+            this.closeModal('modal-rename-subject');
+            this.renderDecks();
+        },
+
+        openAddSubjectModal() {
+            document.getElementById('add-subject-name').value = '';
+            document.getElementById('add-subject-url').value = '';
+            this.openModal('modal-add-subject');
+        },
+
+        async submitAddSubject() {
+            const name = document.getElementById('add-subject-name').value.trim();
+            const url = document.getElementById('add-subject-url').value.trim();
+            if (!url) { app.utils.toast("Enter a Google Sheet URL"); return; }
+            if (!name) { app.utils.toast("Enter a subject name"); return; }
+
+            const apiKeySettings = await app.db.get('settings', 'api_key');
+            if (!apiKeySettings || !apiKeySettings.value) {
+                this.closeModal('modal-add-subject');
+                app.utils.toast("Add your Google API key in Settings first.");
+                this.switchView('settings');
+                return;
+            }
+
+            let subject = { id: app.utils.uuid(), name, url, lastSync: null };
+            await app.db.put('subjects', subject);
+            this.closeModal('modal-add-subject');
+
+            this.switchView('settings');
+            app.sync.log(`Added Subject: ${name}`);
+            await app.sync.syncSubject(subject, apiKeySettings.value);
+            this.switchView('decks');
+        },
+
+        openEditCardModal(cardId, onSaved) {
+            app.db.get('cards', cardId).then(card => {
+                if (!card) return;
+                this._editCardId = cardId;
+                this._editCardCallback = onSaved;
+                document.getElementById('edit-card-front').value = card.front;
+                document.getElementById('edit-card-back').value = card.back;
+                this.openModal('modal-edit-card');
+            });
+        },
+
+        async submitEditCard() {
+            const front = document.getElementById('edit-card-front').value.trim();
+            const back = document.getElementById('edit-card-back').value.trim();
+            if (!front || !back) { app.utils.toast("Both fields are required"); return; }
+
+            const card = await app.db.get('cards', this._editCardId);
+            card.front = front;
+            card.back = back;
+            card.qHash = await app.utils.hash(front);
+            card.aHash = await app.utils.hash(back);
+            await app.db.put('cards', card);
+            this.closeModal('modal-edit-card');
+            app.utils.toast("Card updated");
+            if (this._editCardCallback) this._editCardCallback();
+        },
+
+        openModal(id) { document.getElementById(id).classList.add('active'); },
+        closeModal(id) { document.getElementById(id).classList.remove('active'); },
+        closeAllModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); },
+
+        confirm(title, body, onConfirm) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-body').innerText = body;
+            const btn = document.getElementById('confirm-action-btn');
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.onclick = () => { this.closeModal('modal-confirm'); onConfirm(); };
+            this.openModal('modal-confirm');
         },
 
         async renderDecks() {
@@ -708,10 +1703,11 @@ const app = {
 
             if (subjects.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
-                        <p>No decks found.</p>
-                        <p style="font-size: 0.9rem; margin-top:10px;">To begin, add your Google API key in Settings, then click the button below.</p>
-                        <p style="font-size: 0.8rem; margin-top:10px;">Format: Col A = Question, Col B = Answer. Tabs = Chapters.</p>
+                    <div class="empty-state">
+                        <svg class="i icon-lg" viewBox="0 0 24 24" stroke-width="1.4"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+                        <h3>No decks yet</h3>
+                        <p style="margin-top:6px;">Add your Google API key in Settings, then add a sheet to begin.</p>
+                        <p class="text-faint" style="margin-top:10px;">Format: Column A = Question, Column B = Answer. Tabs become chapters.</p>
                     </div>`;
                 return;
             }
@@ -720,22 +1716,44 @@ const app = {
 
             for (let sub of subjects) {
                 let subChapters = chapters.filter(c => c.subjectId === sub.id);
-                
+
                 let panel = document.createElement('div');
-                panel.className = 'card-panel';
-                
+                panel.className = 'card-panel subject-card';
+
                 let header = document.createElement('div');
                 header.className = 'subject-header';
                 header.innerHTML = `
-                    <div style="flex:1">
-                        <h3 style="margin:0">${app.utils.escapeHTML(sub.name)}</h3>
-                        <span class="text-muted" style="font-size:0.8rem">Last Sync: ${sub.lastSync ? new Date(sub.lastSync).toLocaleString() : 'Never'}</span>
+                    <div class="subject-header-main">
+                        <span class="chevron open">
+                            <svg class="i" viewBox="0 0 24 24" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+                        </span>
+                        <div class="subject-title-block">
+                            <h3>${app.utils.escapeHTML(sub.name)}</h3>
+                            <span class="text-faint">Last sync: ${sub.lastSync ? new Date(sub.lastSync).toLocaleString() : 'Never'}</span>
+                        </div>
                     </div>
-                    <button class="btn btn-primary" onclick="app.study.start('subject', '${sub.id}', '${app.utils.escapeHTML(sub.name)}')">Study</button>
+                    <div class="subject-actions">
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); app.study.start('subject', '${sub.id}', '${app.utils.escapeHTML(sub.name).replace(/'/g,"\\'")}')">Study</button>
+                        <div class="menu-wrap">
+                            <button class="icon-btn" onclick="app.ui.toggleSubjectMenu(event, '${sub.id}')">
+                                <svg class="i" viewBox="0 0 24 24" width="17" height="17"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
+                            </button>
+                        </div>
+                    </div>
                 `;
-                
+                header.querySelector('.subject-header-main').onclick = () => {
+                    let list = panel.querySelector('.chapter-list');
+                    let chev = panel.querySelector('.chevron');
+                    list.classList.toggle('open');
+                    chev.classList.toggle('open');
+                };
+
                 let chapList = document.createElement('div');
                 chapList.className = 'chapter-list open';
+
+                if (subChapters.length === 0) {
+                    chapList.innerHTML = `<p class="text-muted" style="padding:10px 8px;">No chapters synced yet.</p>`;
+                }
 
                 for (let chap of subChapters) {
                     let cCards = cards.filter(c => c.chapterId === chap.id && !c.suspended);
@@ -746,17 +1764,22 @@ const app = {
                     let chapItem = document.createElement('div');
                     chapItem.className = 'chapter-item';
                     chapItem.innerHTML = `
-                        <span style="font-weight: 500">${app.utils.escapeHTML(chap.name)}</span>
-                        <div style="display:flex; align-items: center; gap: 10px;">
+                        <span class="chap-name">${app.utils.escapeHTML(chap.name)}</span>
+                        <div class="chapter-item-row">
                             <div class="pill-container">
-                                <span class="pill new">${cNew}</span>
-                                <span class="pill learn">${cLearn}</span>
-                                <span class="pill due">${cDue}</span>
+                                <span class="pill new ${cNew===0?'zero':''}">${cNew}</span>
+                                <span class="pill learn ${cLearn===0?'zero':''}">${cLearn}</span>
+                                <span class="pill due ${cDue===0?'zero':''}">${cDue}</span>
+                            </div>
+                            <div class="menu-wrap">
+                                <button class="icon-btn" onclick="app.ui.toggleChapterMenu(event, '${chap.id}')">
+                                    <svg class="i" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="5" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="12" cy="19" r="1.1"/></svg>
+                                </button>
                             </div>
                         </div>
                     `;
-                    chapItem.onclick = () => app.study.start('chapter', chap.id, chap.name);
-                    chapItem.style.cursor = 'pointer';
+                    chapItem.querySelector('.chap-name').onclick = () => app.study.start('chapter', chap.id, chap.name);
+                    chapItem.querySelector('.pill-container').onclick = () => app.study.start('chapter', chap.id, chap.name);
                     chapList.appendChild(chapItem);
                 }
 
@@ -764,112 +1787,53 @@ const app = {
                 panel.appendChild(chapList);
                 container.appendChild(panel);
             }
-        },
-
-        async promptAddSubject() {
-            const apiKeySettings = await app.db.get('settings', 'api_key');
-            if (!apiKeySettings || !apiKeySettings.value) {
-                alert("Please add your Google API Key in Settings first.");
-                app.ui.switchView('settings');
-                return;
-            }
-
-            let url = prompt("Enter standard Google Sheet URL:\n(e.g., https://docs.google.com/spreadsheets/d/ID_HERE/edit)");
-            if (!url) return;
-            let name = prompt("Enter Subject Name:", "CA Inter - Subject"); 
-            if (!name) return;
-
-            let subject = { id: app.utils.uuid(), name, url, lastSync: null };
-            await app.db.put('subjects', subject);
-            
-            app.ui.switchView('settings');
-            app.sync.log(`Added Subject: ${name}`);
-            await app.sync.syncSubject(subject, apiKeySettings.value);
-            app.ui.switchView('decks');
         }
     },
 
     // ----------------------------------------------------------------------
-    // 7. BROWSE & STATS
-    // ----------------------------------------------------------------------
-    browse: {
-        async render() {
-            const cards = await app.db.getAll('cards');
-            const chapters = await app.db.getAll('chapters');
-            const tbody = document.getElementById('browse-tbody');
-            tbody.innerHTML = '';
-            
-            let chapMap = {};
-            chapters.forEach(c => chapMap[c.id] = c.name);
-
-            let states = ['New', 'Learn', 'Review', 'Relearn'];
-
-            cards.slice(0, 100).forEach(c => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${app.utils.escapeHTML(c.front.substring(0, 30))}${c.front.length>30?'...':''}</td>
-                    <td>${app.utils.escapeHTML(chapMap[c.chapterId] || 'Unknown')}</td>
-                    <td>${c.suspended ? 'Suspended' : states[c.state]}</td>
-                    <td>${new Date(c.due).toLocaleDateString()}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        },
-        search() {
-            let q = document.getElementById('browse-search').value.toLowerCase();
-            let rows = document.getElementById('browse-tbody').getElementsByTagName('tr');
-            for(let r of rows) {
-                r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
-            }
-        }
-    },
-
-    stats: {
-        async render() {
-            const cards = await app.db.getAll('cards');
-            const reviews = await app.db.getAll('reviews');
-            
-            document.getElementById('stat-total').innerText = cards.length;
-            document.getElementById('stat-new').innerText = cards.filter(c => c.state===0).length;
-            document.getElementById('stat-learning').innerText = cards.filter(c => c.state===1||c.state===3).length;
-            document.getElementById('stat-review').innerText = cards.filter(c => c.state===2).length;
-            document.getElementById('stat-reviews-done').innerText = reviews.length;
-        }
-    },
-
-    // ----------------------------------------------------------------------
-    // 8. SETTINGS & BACKUP
+    // SETTINGS & BACKUP
     // ----------------------------------------------------------------------
     settings: {
         async load() {
             let theme = await app.db.get('settings', 'theme');
             if(theme) this.setTheme(theme.value, false);
+            else this.setTheme('light', false);
 
             let apiKey = await app.db.get('settings', 'api_key');
             if(apiKey && document.getElementById('setting-api-key')) {
                 document.getElementById('setting-api-key').value = apiKey.value;
             }
+
+            let newLimit = await app.db.get('settings', 'new_limit');
+            document.getElementById('setting-new-limit').value = newLimit ? newLimit.value : 20;
         },
         async setTheme(val, save = true) {
             document.documentElement.setAttribute('data-theme', val);
-            document.getElementById('theme-select').value = val;
-            if(save) await app.db.put('settings', {key: 'theme', value: val});
+            document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.themeVal === val));
+            if(save) { await app.db.put('settings', {key: 'theme', value: val}); app.utils.toast("Theme updated"); }
         },
         async saveApiKey() {
             let key = document.getElementById('setting-api-key').value.trim();
-            if (!key) {
-                alert("Please enter a valid API key.");
-                return;
-            }
+            if (!key) { app.utils.toast("Enter a valid API key"); return; }
             await app.db.put('settings', { key: 'api_key', value: key });
-            alert("API Key saved securely to your local database.");
+            app.utils.toast("API key saved");
+        },
+        async saveNewLimit(val) {
+            let n = parseInt(val, 10);
+            if (isNaN(n) || n < 0) n = 20;
+            await app.db.put('settings', { key: 'new_limit', value: n });
+            app.utils.toast("Study option saved");
         },
         async clearAllData() {
-            if(confirm("DANGER: This will delete all your learning history and cards locally. Are you sure?")) {
-                indexedDB.deleteDatabase('flashcard_app_db');
-                alert("Database deleted. The app will now reload.");
-                location.reload();
-            }
+            app.ui.confirm(
+                "Clear all local data?",
+                "This deletes all your subjects, cards, and learning history from this device. Your Google Sheets are not affected. This cannot be undone.",
+                () => {
+                    indexedDB.deleteDatabase('flashcard_app_db');
+                    app.utils.toast("Data cleared — reloading…");
+                    setTimeout(() => location.reload(), 700);
+                }
+            );
         }
     },
 
@@ -886,6 +1850,7 @@ const app = {
             let a = document.createElement('a');
             a.href = url; a.download = `flashcards_backup_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
+            app.utils.toast("Backup downloaded");
         },
         async import(e) {
             let file = e.target.files[0];
@@ -898,15 +1863,33 @@ const app = {
                     if(data.chapters) for(let i of data.chapters) await app.db.put('chapters', i);
                     if(data.cards) for(let i of data.cards) await app.db.put('cards', i);
                     if(data.reviews) for(let i of data.reviews) await app.db.put('reviews', i);
-                    alert("Import successful!");
+                    app.utils.toast("Import successful");
                     app.ui.switchView('decks');
                 } catch (err) {
-                    alert("Import failed: " + err.message);
+                    app.utils.toast("Import failed: " + err.message);
                 }
             };
             reader.readAsText(file);
         }
     }
+};
+
+// Convenience: sync a single subject by id (used by the deck menu "Sync now")
+app.sync.syncSubjectById = async function(subjectId) {
+    app.ui.closeAllMenus();
+    const apiKeySettings = await app.db.get('settings', 'api_key');
+    if (!apiKeySettings || !apiKeySettings.value) {
+        app.utils.toast("Add your Google API key in Settings first.");
+        app.ui.switchView('settings');
+        return;
+    }
+    const subject = await app.db.get('subjects', subjectId);
+    if (!subject) return;
+    app.utils.toast(`Syncing "${subject.name}"…`);
+    await app.sync.syncSubject(subject, apiKeySettings.value);
+    app.ui.renderDecks();
+    app.ui.refreshSidebarSummary();
+    app.utils.toast("Sync complete");
 };
 
 // ----------------------------------------------------------------------
@@ -918,7 +1901,7 @@ window.onload = async () => {
         await app.settings.load();
         app.ui.init();
     } catch (e) {
-        document.body.innerHTML = `<div style="padding: 20px; color: red;">Failed to initialize database. Ensure you are not running in Private Browsing / Incognito mode with strict local storage blocking.<br><br>Error: ${e.message}</div>`;
+        document.body.innerHTML = `<div style="padding: 20px; color: #d64545; font-family: sans-serif;">Failed to initialize database. Ensure you are not running in Private Browsing / Incognito mode with strict local storage blocking.<br><br>Error: ${e.message}</div>`;
     }
 };
 
