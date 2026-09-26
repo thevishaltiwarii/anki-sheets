@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Recall — Spaced Repetition Study</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root {
     --bg: #eef0f4;
@@ -1946,7 +1949,15 @@ window.onload = async () => {
         document.body.innerHTML = `<div style="padding: 20px; color: #d64545; font-family: sans-serif;">Failed to initialize database. Ensure you are not running in Private Browsing / Incognito mode with strict local storage blocking.<br><br>Error: ${e.message}</div>`;
     }
 };
-
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed:', err));
+    });
+  }
+</script>
 </script>
 </body>
 </html>
