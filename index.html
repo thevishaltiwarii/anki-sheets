@@ -220,6 +220,8 @@ input[type="text"], input[type="url"], input[type="password"], input[type="numbe
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 textarea { resize: vertical; min-height: 70px; }
 label.field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-top: 12px; margin-bottom: 2px; }
+.custom-checkbox-label { display:flex; align-items:center; gap:10px; cursor:pointer; padding:10px 12px; background:var(--surface-2); border-radius:8px; border:1px solid var(--border); transition:background 0.15s; }
+.custom-checkbox-label:hover { background:var(--surface); }
 
 /* ---------- Decks / Subjects ---------- */
 .subject-card { margin-bottom: 12px; }
@@ -648,12 +650,12 @@ tbody tr:last-child td { border-bottom: none; }
         Stats
     </button>
     <button onclick="app.ui.switchView('settings')" data-target="settings">
-        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
     </button>
 </nav>
 
-<!-- Generic Confirm Modal -->
+<!-- Modals -->
 <div class="modal-overlay" id="modal-confirm">
     <div class="modal-box">
         <h3 id="confirm-title">Are you sure?</h3>
@@ -665,7 +667,6 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 </div>
 
-<!-- Add Subject Modal -->
 <div class="modal-overlay" id="modal-add-subject">
     <div class="modal-box">
         <h3>Add Google Sheet</h3>
@@ -681,7 +682,6 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 </div>
 
-<!-- Rename Subject Modal -->
 <div class="modal-overlay" id="modal-rename-subject">
     <div class="modal-box">
         <h3>Rename subject</h3>
@@ -693,7 +693,6 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 </div>
 
-<!-- Edit Card Modal -->
 <div class="modal-overlay" id="modal-edit-card">
     <div class="modal-box wide">
         <h3>Edit card</h3>
@@ -709,12 +708,22 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
 </div>
 
-<script>
-/**
- * RECALL — Spaced Repetition Study App
- * Single-file-friendly logic, local-first IndexedDB, FSRS scheduler, Google Sheets API v4 sync.
- */
+<!-- NEW: Study Options Modal -->
+<div class="modal-overlay" id="modal-study-options">
+    <div class="modal-box">
+        <h3>Select chapters</h3>
+        <p class="text-muted" style="margin-bottom:10px;">Choose which chapters to include in this session.</p>
+        <div id="study-options-list" style="max-height: 40vh; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+            <!-- Checkboxes injected here -->
+        </div>
+        <div class="modal-actions">
+            <button class="btn" onclick="app.ui.closeModal('modal-study-options')">Cancel</button>
+            <button class="btn btn-primary" onclick="app.ui.submitStudyOptions()">Start study</button>
+        </div>
+    </div>
+</div>
 
+<script>
 const app = {
     // ----------------------------------------------------------------------
     // UTILITIES
@@ -803,13 +812,11 @@ const app = {
     },
 
     // ----------------------------------------------------------------------
-    // FSRS v4 SCHEDULER
+    // FSRS v4 SCHEDULER (UPDATED for 1m/5m intervals)
     // ----------------------------------------------------------------------
     fsrs: {
         weights: [0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61],
         retention: 0.9,
-        learningSteps: [1, 10],
-        relearningSteps: [10],
 
         createEmptyCard() {
             return {
@@ -832,12 +839,14 @@ const app = {
             if (card.state === 0) {
                 next.difficulty = Math.max(1, Math.min(10, this.weights[4] - this.weights[5] * (rating - 3)));
                 next.stability = this.weights[rating - 1];
-                if (rating === 1 || rating === 2) { next.state = 1; intervalDays = this.learningSteps[0] / 1440; }
-                else if (rating === 3) { next.state = 1; intervalDays = this.learningSteps[1] / 1440; }
+                if (rating === 1) { next.state = 1; intervalDays = 1 / 1440; }       // Again = 1m
+                else if (rating === 2) { next.state = 1; intervalDays = 5 / 1440; }  // Hard = 5m
+                else if (rating === 3) { next.state = 1; intervalDays = 10 / 1440; } // Good = 10m
                 else if (rating === 4) { next.state = 2; intervalDays = this.nextInterval(next.stability); }
             }
             else if (card.state === 1 || card.state === 3) {
-                if (rating === 1 || rating === 2) { intervalDays = this.learningSteps[0] / 1440; }
+                if (rating === 1) { intervalDays = 1 / 1440; }                       // Again = 1m
+                else if (rating === 2) { intervalDays = 5 / 1440; }                  // Hard = 5m
                 else if (rating === 3) { next.state = 2; intervalDays = this.nextInterval(next.stability); }
                 else if (rating === 4) { next.state = 2; intervalDays = this.nextInterval(next.stability) + 1; }
             }
@@ -851,7 +860,7 @@ const app = {
                     next.lapses++;
                     next.state = 3;
                     next.stability = Math.max(0.1, this.weights[11] * Math.pow(card.difficulty, -this.weights[12]) * Math.pow(card.stability, this.weights[13]) * (1 - Math.pow(Math.E, -this.weights[14] * next.elapsed_days)));
-                    intervalDays = this.relearningSteps[0] / 1440;
+                    intervalDays = 1 / 1440; // Lapsed Again = 1m
                 } else {
                     let s_inc;
                     if (rating === 2) s_inc = this.weights[15] * Math.pow(card.difficulty, -this.weights[16]) * (Math.pow(Math.E, this.weights[17] || 0) - 1);
@@ -999,8 +1008,6 @@ const app = {
                     card.qHash = qHash;
                     card.aHash = aHash;
                     card.row_index = i;
-                    // Don't silently un-suspend a card the user deliberately suspended by hand;
-                    // only auto-restore cards that were orphaned by a previous sync (missing row).
                     if (card.suspended && card.orphaned) {
                         card.suspended = false;
                         card.orphaned = false;
@@ -1035,11 +1042,12 @@ const app = {
     // ----------------------------------------------------------------------
     study: {
         queue: [], currentCard: null, activeContext: null, sessionStats: { studied: 0, good: 0 },
-        history: [], // undo stack: { card (prev state), review (id) }
+        history: [], 
         chapNameCache: {},
 
-        async start(type, id, name) {
-            this.activeContext = { type, id, name };
+        // Updated start signature to handle custom chapter selections
+        async start(type, id, name, chapterIds = null) {
+            this.activeContext = { type, id, name, chapterIds };
             this.sessionStats = { studied: 0, good: 0 };
             this.history = [];
             document.getElementById('btn-undo').disabled = true;
@@ -1050,7 +1058,7 @@ const app = {
 
             await this.buildQueue();
             if (this.queue.length === 0) {
-                app.utils.toast("No cards due right now.");
+                app.utils.toast("No cards available in this selection.");
                 app.ui.switchView('decks');
             } else {
                 app.ui.switchView('study');
@@ -1066,8 +1074,14 @@ const app = {
 
         async buildQueue() {
             let allCards = [];
-            if (this.activeContext.type === 'subject') {
+            
+            // Handle fetching logic based on mode
+            if (this.activeContext.type === 'subject' || this.activeContext.type === 'custom') {
                 allCards = await app.db.getAll('cards', 'subjectId', this.activeContext.id);
+                // Filter by specific chapters if we are in 'custom' study mode
+                if (this.activeContext.type === 'custom') {
+                    allCards = allCards.filter(c => this.activeContext.chapterIds.includes(c.chapterId));
+                }
             } else {
                 allCards = await app.db.getAll('cards', 'chapterId', this.activeContext.id);
             }
@@ -1075,15 +1089,18 @@ const app = {
             let now = Date.now();
             let limitNew = await this.getNewLimit();
             let newCards = [], learnCards = [], reviewCards = [];
+            
+            // Cram Mode: If they clicked a Chapter directly, ignore due dates and show all cards
+            let isCramMode = (this.activeContext.type === 'chapter');
 
             for (let c of allCards) {
                 if (c.suspended) continue;
                 if (c.state === 0) {
-                    if (newCards.length < limitNew) newCards.push(c);
-                } else if ((c.state === 1 || c.state === 3) && c.due <= now) {
-                    learnCards.push(c);
-                } else if (c.state === 2 && c.due <= now) {
-                    reviewCards.push(c);
+                    if (isCramMode || newCards.length < limitNew) newCards.push(c);
+                } else if ((c.state === 1 || c.state === 3)) {
+                    if (isCramMode || c.due <= now) learnCards.push(c);
+                } else if (c.state === 2) {
+                    if (isCramMode || c.due <= now) reviewCards.push(c);
                 }
             }
 
@@ -1144,7 +1161,6 @@ const app = {
             let card = this.currentCard;
             let updatedCard = app.fsrs.calculate(card, rating);
 
-            // Save undo snapshot (pre-rating card state + the review we're about to write)
             let reviewId = app.utils.uuid();
             this.history.push({ prevCard: { ...card }, reviewId, queueSnapshot: [...this.queue] });
             document.getElementById('btn-undo').disabled = false;
@@ -1195,7 +1211,6 @@ const app = {
         editCurrentCard() {
             if (!this.currentCard) return;
             app.ui.openEditCardModal(this.currentCard.id, () => {
-                // refresh in-memory card + visible text after save
                 app.db.get('cards', this.currentCard.id).then(c => {
                     this.currentCard = c;
                     document.getElementById('card-question').innerHTML = app.utils.formatText(c.front);
@@ -1397,7 +1412,6 @@ const app = {
             document.getElementById('stat-suspended').innerText = cards.filter(c => c.suspended).length;
             document.getElementById('stat-reviews-done').innerText = reviews.length;
 
-            // Heatmap: last 20 days review counts
             let dayCounts = {};
             reviews.forEach(r => {
                 let d = new Date(r.ts);
@@ -1416,7 +1430,6 @@ const app = {
             }
             document.getElementById('stat-heatmap').innerHTML = heatmapHtml;
 
-            // By-subject breakdown
             let chapMap = {}; chapters.forEach(c => chapMap[c.id] = c.subjectId);
             let bySubject = document.getElementById('stat-by-subject');
             if (subjects.length === 0) {
@@ -1447,7 +1460,6 @@ const app = {
                     return;
                 }
                 
-                // IMPORTANT: Ignore all other shortcuts if typing in an input/textarea
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
                 if (document.getElementById('view-study').classList.contains('active')) {
@@ -1676,8 +1688,39 @@ const app = {
             card.aHash = await app.utils.hash(back);
             await app.db.put('cards', card);
             this.closeModal('modal-edit-card');
-            app.utils.toast("Card updated");
+            app.utils.toast("Card updated locally");
             if (this._editCardCallback) this._editCardCallback();
+        },
+        
+        // NEW: Study Chapter Selection Flow
+        openStudyOptionsModal(subjectId, subjectName) {
+            this.closeAllMenus();
+            app.db.getAll('chapters', 'subjectId', subjectId).then(chapters => {
+                if (chapters.length === 0) {
+                    app.utils.toast("No chapters available."); 
+                    return;
+                }
+                this._studyContext = { subjectId, subjectName };
+                const list = document.getElementById('study-options-list');
+                list.innerHTML = chapters.map(ch => `
+                    <label class="custom-checkbox-label">
+                        <input type="checkbox" class="study-chapter-cb" value="${ch.id}" checked style="width:auto; margin:0;">
+                        <span>${app.utils.escapeHTML(ch.name)}</span>
+                    </label>
+                `).join('');
+                this.openModal('modal-study-options');
+            });
+        },
+
+        submitStudyOptions() {
+            const checkboxes = document.querySelectorAll('.study-chapter-cb:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+            if (selectedIds.length === 0) {
+                app.utils.toast("Select at least one chapter to study");
+                return;
+            }
+            this.closeModal('modal-study-options');
+            app.study.start('custom', this._studyContext.subjectId, this._studyContext.subjectName, selectedIds);
         },
 
         openModal(id) { document.getElementById(id).classList.add('active'); },
@@ -1733,7 +1776,7 @@ const app = {
                         </div>
                     </div>
                     <div class="subject-actions">
-                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); app.study.start('subject', '${sub.id}', '${app.utils.escapeHTML(sub.name).replace(/'/g,"\\'")}')">Study</button>
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); app.ui.openStudyOptionsModal('${sub.id}', '${app.utils.escapeHTML(sub.name).replace(/'/g,"\\'")}')">Study</button>
                         <div class="menu-wrap">
                             <button class="icon-btn" onclick="app.ui.toggleSubjectMenu(event, '${sub.id}')">
                                 <svg class="i" viewBox="0 0 24 24" width="17" height="17"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
@@ -1874,7 +1917,6 @@ const app = {
     }
 };
 
-// Convenience: sync a single subject by id (used by the deck menu "Sync now")
 app.sync.syncSubjectById = async function(subjectId) {
     app.ui.closeAllMenus();
     const apiKeySettings = await app.db.get('settings', 'api_key');
